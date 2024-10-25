@@ -22,4 +22,4 @@ else
 fi
 
 # Install GUI dependencies
-npm install
+npm install 
