@@ -39,14 +39,14 @@ class OurKickoffAction(LeafNode):
         super().__init__(name)
         
     def run(self):
-        return TaskStatus.SUCCESS, OurAttackerAction()
+        return TaskStatus.SUCCESS, OurAttackerAction(None)
     
 class TheirKickoffAction(LeafNode):
     def __init__(self, name):
         self.name = name
         
     def run(self):
-        return TaskStatus.SUCCESS, TheirAttackerAction()
+        return TaskStatus.SUCCESS, TheirAttackerAction(None)
     
 class Kickoff(Sequence):
     def __init__(self, name):

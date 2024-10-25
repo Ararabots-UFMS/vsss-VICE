@@ -66,6 +66,7 @@ class Coach(Node):
         kickoff = Kickoff("Kickoff")
         for robot in list(self.robots.values()):
             print(kickoff.run()[1])
+            
             self.robots[robot.id].behaviour_tree = kickoff.run()[1]
         # for bt in bts:
         #     robot.tree = bt
