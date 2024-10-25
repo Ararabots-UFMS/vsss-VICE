@@ -27,7 +27,7 @@ class Coach(Node):
         self.robots = {}
 
         # TODO: experiment with other timer rates
-        # self.timer = self.create_timer(0.5, self.update)
+        self.timer = self.create_timer(0.5, self.update)
         self.timer = self.create_timer(0.1, self.run)
 
 
@@ -58,14 +58,13 @@ class Coach(Node):
     def run(self):
         # self.get_logger().info(f"Running")
         # The code below just create a simple behaviour tree which is available in strategy
+        # freekick = FreeKick("FreeKick")
+        # stop = Stop("Stop")
+        # penalty = Penalty("Penalty")
+        # timeout = _Timeout("Timeout")
+        # halt = Halt("Halt")
         kickoff = Kickoff("Kickoff")
-        freekick = FreeKick("FreeKick")
-        stop = Stop("Stop")
-        penalty = Penalty("Penalty")
-        timeout = _Timeout("Timeout")
-        halt = Halt("Halt")
-
-        print(halt.run()[1])
+        print(kickoff.run()[1])
         # for bt in bts:
         #     robot.tree = bt
         # self.behaviour_tree.run(self.blackboard)

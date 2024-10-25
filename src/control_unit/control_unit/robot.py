@@ -26,6 +26,8 @@ class Robot(Node):
 
     def run(self):
         self.get_logger().info(f"Running robot {self.id}")
-        profile = self.behaviour_tree.run()
-        self.trajectory = self.move(profile)
-        self.trajectory_start_time = time()
+        if self.behaviour_tree != "None" and self.behaviour_tree != None:
+            profile = self.behaviour_tree.run()
+            print(self.behaviour_tree.run())
+            self.trajectory = self.move(profile)
+            self.trajectory_start_time = time()
