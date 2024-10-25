@@ -64,7 +64,9 @@ class Coach(Node):
         # timeout = _Timeout("Timeout")
         # halt = Halt("Halt")
         kickoff = Kickoff("Kickoff")
-        print(kickoff.run()[1])
+        for robot in list(self.robots.values()):
+            print(kickoff.run()[1])
+            self.robots[robot.id].behaviour_tree = kickoff.run()[1]
         # for bt in bts:
         #     robot.tree = bt
         # self.behaviour_tree.run(self.blackboard)
