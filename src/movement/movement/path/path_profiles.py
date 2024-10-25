@@ -53,7 +53,7 @@ class GetInAngleProfile(PathProfile):
         bottleneck_vel = inp.max_velocity[0] if inp.max_velocity[0] < inp.max_velocity[1] else inp.max_velocity[1]
         arriving_velocity = bottleneck_vel * 0.5
         
-        inp.target_position = goal_state[0]
+        inp.target_position = [goal_state[0], goal_state[1]]
         inp.target_velocity = [arriving_velocity * cos(theta) , arriving_velocity * sin(theta)]
         
         return None
@@ -107,7 +107,7 @@ class SpinProfile(OrientationProfile):
 
         direction = 1 if clockwise else -1
 
-        inp.target_velocity = [inp.max_velocity[2] * direction]
+        inp.target_velocity = [inp.max_velocity[0] * direction]
         inp.target_acceleration = [0.0]
 
         return None
@@ -122,7 +122,7 @@ class BypassProfile(PathProfile):
         random_values = [uniform(-1, 1), uniform(-1, 1)]
 
         inp.target_velocity = [inp.max_velocity[0], inp.max_velocity[1]]
-        inp.target_acceleration = [inp.max_acceleration[0] * random_values, inp.max_acceleration[1] * random_values]
+        inp.target_acceleration = [inp.max_acceleration[0] * random_values[0], inp.max_acceleration[1] * random_values[1]]
 
         return None
 

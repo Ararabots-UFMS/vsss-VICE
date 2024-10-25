@@ -35,19 +35,20 @@ class CommandPublisher(Node):
         for robot in self.coach.robots.values():
             elapsed_time = current_time - robot.trajectory_start_time
 
-            position, velocities, _ = robot.trajectory.at_time(elapsed_time)
+            position, velocities, _ = robot.path_trajectory.at_time(elapsed_time)
+            orientation, angular_velocity, _ = robot.orientation_trajectory.at_time(elapsed_time)
 
             vel_norm, vel_tan = rotate_velocities_to_robot_frame(
                 velocities[0] * mm_to_m,
                 velocities[1] * mm_to_m,
-                -position[2],
+                -orientation[0],
             )
 
             command = RobotCommand()
             command.robot_id = robot.id
             command.linear_velocity_x = vel_norm
             command.linear_velocity_y = vel_tan
-            command.angular_velocity = velocities[2]
+            command.angular_velocity = angular_velocity[0]
             msg.robots.append(command)
 
         self.publisher.publish(msg)

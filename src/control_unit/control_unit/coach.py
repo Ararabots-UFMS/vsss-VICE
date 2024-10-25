@@ -47,7 +47,8 @@ class Coach(Node):
                 self.robots.pop(robot.id)
 
     def run(self):
-        self.get_logger().info(f"Running")
+        # self.get_logger().info(f"Running")
+        pass
         # self.behaviour_tree.run(self.blackboard)
 
 
