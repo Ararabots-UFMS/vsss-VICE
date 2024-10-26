@@ -26,14 +26,3 @@ class DynamicObstacle(Obstacle):
     @abstractmethod
     def update_state(self, point: Tuple[float, float]) -> None:
         pass
-    
-class DynamicObstacle(Obstacle):
-
-    @abstractmethod
-    def get_dynamic_range(self, delta: float) -> Tuple[Tuple[float, float], float]:
-        ''' Returns the center position and radius of dinamic range '''
-        pass
-
-    @abstractmethod
-    def update_state(self, point: Tuple[float, float]) -> None:
-        pass
