@@ -9,6 +9,7 @@ from threading import Thread
 from utils.converter import todict
 
 from grsim_messenger.grsim_publisher import grSimPublisher
+from hardware_messenger.hardware_publisher import HardwarePublisher
 
 from system_interfaces.msg import VisionMessage, GUIMessage
 from vision.vision_node import Vision
@@ -70,6 +71,14 @@ class APINode(Node):
         self.get_logger().info(f"Is team color blue? {is_team_color_blue}")
         self.is_team_color_blue = is_team_color_blue
         self.publish_gui_data()
+    
+    def handle_simulation(self, is_simulation):
+        self.get_logger().info(f"Is sumulation? {is_simulation}")
+        self.is_simulation = is_simulation
+        if (is_simulation):
+            self.communication_node = grSimPublisher()
+        else:
+            self.communication_node = HardwarePublisher()
 
     def handle_vision_button(self):
         if self.vision_running.is_set():
@@ -157,6 +166,7 @@ def main(args=None):
     gui_socket.on_event("disconnect", node.handle_disconnect, namespace="")
     gui_socket.on_event("fieldSide", node.handle_field_side, namespace="")
     gui_socket.on_event("teamColor", node.handle_team_color, namespace="")
+    gui_socket.on_event("fieldMode", node.handle_simulation, namespace="")
     gui_socket.on_event("visionButton", node.handle_vision_button, namespace="")
     gui_socket.on_event(
         "communicationButton", node.handle_communication_button, namespace=""
