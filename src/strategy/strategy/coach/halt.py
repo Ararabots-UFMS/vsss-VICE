@@ -1,5 +1,6 @@
 from strategy.behaviour import LeafNode, Sequence, TaskStatus
 from strategy.blackboard import Blackboard
+from strategy.robots.kickoff.our_kick_off.attacker import OurAttackerAction
 
 
 class CheckState(LeafNode):
@@ -19,7 +20,7 @@ class HaltAction(LeafNode):
         super().__init__(name)
 
     def run(self):
-        return TaskStatus.SUCCESS, "HALT!"
+        return TaskStatus.SUCCESS, OurAttackerAction()
     
 class Halt(Sequence):
     def __init__(self, name):

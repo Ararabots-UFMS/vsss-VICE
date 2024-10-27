@@ -1,14 +1,24 @@
-from strategy.behaviour import BaseTree
+from strategy.behaviour import BaseTree, Selector
 
+from strategy.coach.freekick import FreeKick
+from strategy.coach.halt import Halt
 from strategy.coach.kickoff import Kickoff
+from strategy.coach.penalty import Penalty
+from strategy.coach.stop import Stop
+from strategy.coach.timeout import _Timeout
 
-class CoachStrategy(BaseTree):
-    def __init__(self):
-        super().__init__()
-        self._root = None
+class CoachStrategy(Selector):
+    def __init__(self, name):
+        super().__init__(name, [])
+        kickoff = Kickoff("Kickoff")
+        freekick = FreeKick("FreeKick")
+        stop = Stop("Stop")
+        penalty = Penalty("Penalty")
+        timeout = _Timeout("Timeout")
+        halt = Halt("Halt")
 
-    def set_root(self, root):
-        self._root = root
+        self.add_children([stop, halt, kickoff, freekick, penalty, timeout])
 
-    def execute(self):
-        self._root.execute()
+    def run(self):
+        return super().run()
+        

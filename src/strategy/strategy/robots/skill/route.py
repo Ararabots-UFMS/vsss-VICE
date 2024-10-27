@@ -6,10 +6,9 @@ from strategy.blackboard import Blackboard
 
 class NormalMovement():
     """This class should be a strategy skill to move a robot to a especific point"""
-    def __init__(self, name, id):
+    def __init__(self, id):
         super().__init__()
-        self.name = name
-        self.id = id
+        self.id = id #TODO put id to make more general
         self.blackboard = Blackboard()
 
     def run(self):
@@ -62,6 +61,19 @@ class NormalMovement():
                     "goalkeeper": self.blackboard.referee._teams[0].goalkeeper,
                     "position" : "Goalkeeper"}
         
+    def moveToPenalty(self):
+
+        """Moviment to central area, acording with the Penalty requirements"""
+
+        #TODO: create a function to direct the robot to point (+-750,0)
+        # Penalty mark: at the goal to goal mark (y = 0) 3m away from the goal (x = -750 or x = +750)
+        if self.blackboard.gui._is_field_side_left: # point (-750,0) turned to 
+            ...
+        else: # point(750,0), turned to left
+            ...
+            
+
+
 class StraightMovement():
     """This class have types of movements using StraightProfile"""
     def __init__(self,name):

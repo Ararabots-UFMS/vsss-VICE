@@ -8,6 +8,7 @@ from strategy.blackboard import Blackboard
 from strategy.coach.freekick import FreeKick
 from strategy.coach.halt import Halt
 from strategy.coach.kickoff import Kickoff
+from strategy.coach.main import CoachStrategy
 from strategy.coach.penalty import Penalty
 from strategy.coach.stop import Stop
 from strategy.coach.timeout import _Timeout
@@ -58,16 +59,19 @@ class Coach(Node):
     def run(self):
         # self.get_logger().info(f"Running")
         # The code below just create a simple behaviour tree which is available in strategy
-        # freekick = FreeKick("FreeKick")
-        # stop = Stop("Stop")
-        # penalty = Penalty("Penalty")
-        # timeout = _Timeout("Timeout")
-        # halt = Halt("Halt")
-        kickoff = Kickoff("Kickoff")
-        for robot in list(self.robots.values()):
-            print(kickoff.run()[1])
+        # for robot in list(self.robots.values()):
+        #     print(kickoff.run()[1])
             
-            self.robots[robot.id].behaviour_tree = kickoff.run()[1]
+        #     self.robots[robot.id].behaviour_tree = kickoff.run()[1]
+        id = 1
+        strategy = CoachStrategy("CoachStrategy")
+        print(strategy.run()[1])
+        self.behaviour_tree = strategy.run()[1]
+        if self.behaviour_tree != None and self.behaviour_tree != "None":
+            profile = self.behaviour_tree(id)
+            print(profile)
+
+
         # for bt in bts:
         #     robot.tree = bt
         # self.behaviour_tree.run(self.blackboard)

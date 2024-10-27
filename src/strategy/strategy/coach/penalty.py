@@ -1,6 +1,7 @@
 
 from strategy.behaviour import LeafNode, Selector, Sequence, TaskStatus
 from strategy.blackboard import Blackboard
+from strategy.robots.kickoff.our_kick_off.attacker import OurAttackerAction, TheirAttackerAction
 
 
 class CheckState(LeafNode):
@@ -38,14 +39,14 @@ class OurPenaltyAction(LeafNode):
         super().__init__(name)
         
     def run(self):
-        return TaskStatus.SUCCESS, "OUR PENALTY ACTION"
+        return TaskStatus.SUCCESS, OurAttackerAction()
     
 class TheirPenaltyAction(LeafNode):
     def __init__(self, name):
         self.name = name
         
     def run(self):
-        return TaskStatus.SUCCESS, "THEIR PENALTY ACTION"
+        return TaskStatus.SUCCESS, TheirAttackerAction()
     
 class Penalty(Sequence):
     def __init__(self, name):
