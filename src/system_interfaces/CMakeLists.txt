@@ -24,6 +24,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/GUIMessage.msg"
   "msg/RobotCommand.msg"
   "msg/TeamCommand.msg"
+  "msg/GUIRobot.msg"
 )
 
 if(BUILD_TESTING)

@@ -5,13 +5,14 @@ from flask import Flask
 from flask_socketio import SocketIO, emit
 import threading
 from threading import Thread
+import ctypes
 
 from utils.converter import todict
 
 from grsim_messenger.grsim_publisher import grSimPublisher
 from hardware_messenger.hardware_publisher import HardwarePublisher
 
-from system_interfaces.msg import VisionMessage, GUIMessage
+from system_interfaces.msg import VisionMessage, GUIMessage, GUIRobot
 from vision.vision_node import Vision
 from referee.referee_node import RefereeNode
 
@@ -23,6 +24,36 @@ vision_running = threading.Event()
 communication_running = threading.Event()
 
 referee_running = threading.Event()
+
+class thread_with_exception(threading.Thread):
+    def __init__(self, socket):
+        threading.Thread.__init__(self)
+        self.socket = socket
+            
+    def run(self):
+
+        # target function of the thread class
+        try:
+            self.socket.run(app, allow_unsafe_werkzeug = True)
+        finally:
+            print('ended')
+         
+    def get_id(self):
+
+        # returns id of the respective thread
+        if hasattr(self, '_thread_id'):
+            return self._thread_id
+        for id, thread in threading._active.items():
+            if thread is self:
+                return id
+ 
+    def raise_exception(self):
+        thread_id = self.get_id()
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id,
+              ctypes.py_object(SystemExit))
+        if res > 1:
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
+            print('Exception raise failure')
 
 
 class APINode(Node):
@@ -151,11 +182,27 @@ class APINode(Node):
         msg.is_field_side_left = self.is_field_side_left
         msg.is_team_color_yellow = self.is_team_color_yellow
         msg.is_play_pressed = self.is_play_pressed
+        for gui_robot in self.robots:
+            robot = GUIRobot()
+            robot.id = gui_robot['id']
+            robot.name = gui_robot['name']
+            robot.address = [int(i) for i in gui_robot['address'].split(',')]
+            robot.kp = float(gui_robot['kp'])
+            robot.ki = float(gui_robot['ki'])
+            robot.kd = float(gui_robot['kd'])
+
+            msg.robots.append(robot)
+        msg.robot_count = self.robot_count
         return msg
 
     def publish_gui_data(self) -> None:
         message = self.create_message()
         self.publisher.publish(message)
+    
+    def handle_config_button(self, msg):
+        self.robot_count = len(msg)
+        self.robots = msg
+        self.publish_gui_data()
 
 
 def main(args=None):
@@ -174,12 +221,15 @@ def main(args=None):
     gui_socket.on_event(
          "refereeButton", node.handle_referee_button, namespace=""
     )
-    Thread(
-        target=gui_socket.run, args=(app,), kwargs={"allow_unsafe_werkzeug": True}
-    ).start()
-    executor.add_node(node)
-    executor.spin()
-    rclpy.shutdown()
+    gui_socket.on_event("configSaveButton", node.handle_config_button, namespace="")
+    try:
+        thread = thread_with_exception(gui_socket)
+        thread.start()
+        executor.add_node(node)
+        executor.spin()
+    except Exception:
+        thread.raise_exception()
+        rclpy.shutdown()
 
 
 if __name__ == "__main__":
