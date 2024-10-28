@@ -2,7 +2,7 @@ from strategy.blackboard import Blackboard
 
 from strategy.behaviour import LeafNode, Sequence, Selector
 from strategy.behaviour import TaskStatus
-from strategy.robots.kickoff.our_kick_off.attacker import OurAttackerAction, TheirAttackerAction
+from strategy.robots.freekick.our_free_kick.attacker import OurAttackerAction, TheirAttackerAction
 
 class CheckState(LeafNode):
     def __init__(self, name, _desired_states):

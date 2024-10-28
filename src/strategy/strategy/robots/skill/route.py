@@ -6,111 +6,144 @@ from strategy.blackboard import Blackboard
 
 class NormalMovement():
     """This class should be a strategy skill to move a robot to a especific point"""
-    def __init__(self, id):
+    def __init__(self):
         super().__init__()
-        self.id = id
         self.blackboard = Blackboard()
 
-    def run(self):
+    # theta is radians and position(x,y) is millimeter
+
+    def moveToCenter(self):   
 
         """Moviment to point when the robot is not goalkeeper"""
+        return {"obstacles" : self.blackboard.enemy_robots,
+                "path_profile" : MovementProfiles.Normal,
+                # "orientation": DirectionProfile.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (90,0)},
+                "orientation_kwargs" : {"theta" : 0},
+                "type": "moveToCenter"}
+    
+    def centerLineGoal(self):
+        
+        """"Moviment to the center of our goal"""
 
-        if self.blackboard.gui.is_team_color_yellow == True and self.id != self.blackboard.referee._teams[1].goalkeeper:
-            return {"obstacles" : self.blackboard.enemy_robots,
-                    "path_profile" : MovementProfiles.Normal,
-                    # "orientation": DirectionProfile.Aim,
-                    "sync" : False,
-                    "path_kwargs" : {"goal_state" : (0,0)},
-                    "orientation_kwargs" : {"theta" : 0}}
-        
-        elif self.blackboard.gui.is_team_color_yellow == False and self.id != self.blackboard.referee._teams[0].goalkeeper:
-            return {"obstacles" : self.blackboard.enemy_robots,
-                    "path_profile" : MovementProfiles.Normal,
-                    # "orientation": DirectionProfile.Aim,
-                    "sync" : False,
-                    "path_kwargs" : {"goal_state" : (0,0)},
-                    "orientation_kwargs" : {"theta" : 0}}
-        
-        """Moviment to point when the robot is goalkeeper"""
+        return {"obstacles" : [],
+                "path_profile" : MovementProfiles.Normal,
+                # "orientation": DirectionProfile.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (2160,0)},
+                "orientation_kwargs" : {"theta" : 0},
+                "type" : "centerLineGoal"}
+    
+    def outsideCenterCircle(self):
+        """"Moviment to the center of our goal"""
 
-        if self.blackboard.gui.is_team_color_yellow == True and self.id == self.blackboard.referee._teams[1].goalkeeper:
-            return {"obstacles" : self.blackboard.enemy_robots,
-                    "path_profile" : MovementProfiles.Normal,
-                    # "orientation": DirectionProfile.Aim,
-                    "sync" : False,
-                    "path_kwargs" : {"goal_state" : (0,0)},
-                    "orientation_kwargs" : {"theta" : 0}}
+        return {"obstacles" : [],
+                "path_profile" : MovementProfiles.Normal,
+                # "orientation": DirectionProfile.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (600,0)},
+                "orientation_kwargs" : {"theta" : 0},
+                "type" : "outsideCenterCircle"}
+      
         
-        elif self.blackboard.gui.is_team_color_yellow == False and self.id == self.blackboard.referee._teams[0].goalkeeper:
-            return {"obstacles" : self.blackboard.enemy_robots,
-                    "path_profile" : MovementProfiles.Normal,
-                    # "orientation": DirectionProfile.Aim,
-                    "sync" : False,
-                    "path_kwargs" : {"goal_state" : (0,0)},
-                    "orientation_kwargs" : {"theta" : 0}}
-        
-    def moveToPenalty(self):
+    def moveToPenaltyKicker(self):
 
         """Moviment to central area, acording with the Penalty requirements"""
 
         #TODO: create a function to direct the robot to point (+-750,0)
         # Penalty mark: at the goal to goal mark (y = 0) 3m away from the goal (x = -750 or x = +750)
         if self.blackboard.gui._is_field_side_left: # point (-750,0) turned to right
-            ...
+            return {"obstacles" : [],
+                "path_profile" : MovementProfiles.Normal,
+                # "orientation": DirectionProfile.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (660,0)},
+                "orientation_kwargs" : {"theta" : 0},
+                "type" : "moveToPenaltyKicker"}
         else: # point(750,0), turned to left
-            ...
+            return {"obstacles" : [],
+                "path_profile" : MovementProfiles.Normal,
+                # "orientation": DirectionProfile.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (-660,0)},
+                "orientation_kwargs" : {"theta" : 3.14},
+                "type" : "moveToPenaltyKicker"}
+    
+    def moveToPenaltyDefender(self):
+        if self.blackboard.gui._is_field_side_left: # point (-750,0) turned to right
+            return {"obstacles" : [],
+                "path_profile" : MovementProfiles.Normal,
+                # "orientation": DirectionProfile.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (-250,0)},
+                "orientation_kwargs" : {"theta" : 0},
+                "type" : "moveToPenaltyDefender"}
+        else: # point(750,0), turned to left
+            return {"obstacles" : [],
+                "path_profile" : MovementProfiles.Normal,
+                # "orientation": DirectionProfile.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (250,0)},
+                "orientation_kwargs" : {"theta" : 3.14},
+                "type" : "moveToPenaltyDefender"}
+    
+    def moveToFreeKick(self):
+        #TODO adjust properly free-kick
+        if self.blackboard.gui._is_field_side_left: # point (-750,0) turned to right
+            return {"obstacles" : [],
+                "path_profile" : MovementProfiles.Normal,
+                # "orientation": DirectionProfile.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (-90,0)},
+                "orientation_kwargs" : {"theta" : 0},
+                "type" : "moveToFreeKick"
+                }
+        else: # point(750,0), turned to left
+            return {"obstacles" : [],
+                "path_profile" : MovementProfiles.Normal,
+                # "orientation": DirectionProfile.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (-660,0)},
+                "orientation_kwargs" : {"theta" : 3.14},
+                "type" : "moveToFreeKick"
+                }
+
             
 
 
 class StraightMovement():
     """This class have types of movements using StraightProfile"""
-    def __init__(self,name):
+    def __init__(self):
         super().__init__()
-        self.name = name
-        self.id = 1 # TODO adjust to general cases
         self.blackboard = Blackboard()
 
     def run(self):
 
         """Moviment to point when the robot is not goalkeeper"""
 
-        if self.blackboard.gui.is_team_color_yellow == True and self.id != self.blackboard.referee._teams[1].goalkeeper:
-            return {"obstacles" : self.blackboard.enemy_robots,
-                    "path_profile" : MovementProfiles.Straight,
-                    # "orientation": DirectionProfile.Aim,
-                    "sync" : False,
-                    "path_kwargs" : {"theta" : 0},
-                    "orientation_kwargs" : {"theta" : 0}}
+        return {"obstacles" : self.blackboard.enemy_robots,
+                "path_profile" : MovementProfiles.Straight,
+                # "orientation": DirectionProfile.Aim,
+                "sync" : False,
+                "orientation_kwargs" : {"theta" : 0}}
         
-        elif self.blackboard.gui.is_team_color_yellow == False and self.id != self.blackboard.referee._teams[0].goalkeeper:
-            return {"obstacles" : self.blackboard.enemy_robots,
-                    "path_profile" : MovementProfiles.Straight,
-                    # "orientation": DirectionProfile.Aim,
-                    "sync" : False,
-                    "path_kwargs" : {"theta" : 0},
-                    "orientation_kwargs" : {"theta" : 0}}
-        
-        """Moviment to point when the robot is goalkeeper"""
-
-        if self.blackboard.gui.is_team_color_yellow == True and self.id == self.blackboard.referee._teams[1].goalkeeper:
-            return {"obstacles" : self.blackboard.enemy_robots,
-                    "path_profile" : MovementProfiles.Straight,
-                    # "orientation": DirectionProfile.Aim,
-                    "sync" : False,
-                    "path_kwargs" : {"theta" : 0},
-                    "orientation_kwargs" : {"theta" : 0}}
-        
-        elif self.blackboard.gui.is_team_color_yellow == False and self.id == self.blackboard.referee._teams[0].goalkeeper:
-            return {"obstacles" : self.blackboard.enemy_robots,
-                    "path_profile" : MovementProfiles.Straight,
-                    # "orientation": DirectionProfile.Aim,
-                    "sync" : False,
-                    "path_kwargs" : {"theta" : 0},
-                    "orientation_kwargs" : {"theta" : 0}}
         
 class GetInAngleStrategy():
     """This class have types of movements using StraightProfile"""
         
     pass
+
+class BreakStrategy():
+    """"This class have the BreakProfile movement"""
+    def __init__(self):
+        super().__init__()
+        self.blackboard = Blackboard()
+
+    def _break(self):
+        return {"obstacles" : self.blackboard.enemy_robots,
+                "path_profile" : MovementProfiles.Straight,
+                # "orientation": DirectionProfile.Aim,
+                "sync" : False,
+                "type" : "Break"}
         
-            

@@ -63,12 +63,11 @@ class Coach(Node):
         #     print(kickoff.run()[1])
             
         #     self.robots[robot.id].behaviour_tree = kickoff.run()[1]
-        id = 1
         strategy = CoachStrategy("CoachStrategy")
         print(strategy.run()[1])
         self.behaviour_tree = strategy.run()[1]
         if self.behaviour_tree != None and self.behaviour_tree != "None":
-            profile = self.behaviour_tree(id)
+            profile = self.behaviour_tree()
             print(profile)
 
 

@@ -2,31 +2,31 @@
 from strategy.blackboard import Blackboard
 from strategy.robots.skill.route import NormalMovement
 
-"""Contains all KickOffActions the robot must do (in order or not) during the match"""
+"""Contains all FreeKickActions the robot must do (in order or not) during the match"""
 
-class OurActionAttacker():
+class OurActionGoalKeeper():
     def __init__(self):
-        self.name = "OurActionAttacker"
+        self.name = "OurAttackerAction"
         self.blackboard = Blackboard()
 
     def __call__(self, **kwds):
         self.movement = NormalMovement()
-        return self.movement.moveToCenter()
+        return self.movement.centerLineGoal()
 
     def run(self):
         self.movement = NormalMovement()
-        return self.movement.moveToCenter()
+        return self.movement.centerLineGoal()
 
 
-class TheirActionAttacker():
+class TheirActionGoalKeeper():
     def __init__(self):
-        self.name = "TheirActionAttacker"
+        self.name = "TheirAttackerAction"
         self.blackboard = Blackboard()
 
     def __call__(self, **kwds):
         self.movement = NormalMovement()
-        return self.movement.outsideCenterCircle()
+        return self.movement.centerLineGoal()
         
     def run(self):
         self.movement = NormalMovement()
-        return self.movement.outsideCenterCircle()
+        return self.movement.centerLineGoal()

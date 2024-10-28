@@ -2,7 +2,7 @@ from strategy.blackboard import Blackboard
 
 from strategy.behaviour import LeafNode, Sequence, Selector
 from strategy.behaviour import TaskStatus
-from strategy.robots.kickoff.our_kick_off.attacker import OurAttackerAction, TheirAttackerAction
+from strategy.robots.timeout.attacker import AttackerAction
 
 class CheckState(LeafNode):
     def __init__(self, name, _desired_states):
@@ -21,7 +21,7 @@ class _TimeoutAction(LeafNode):
         super().__init__(name)
 
     def run(self):
-        return TaskStatus.SUCCESS, OurAttackerAction()
+        return TaskStatus.SUCCESS, AttackerAction()
     
 class _Timeout(Sequence):
     def __init__(self, name):

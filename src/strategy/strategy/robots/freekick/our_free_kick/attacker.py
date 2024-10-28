@@ -5,27 +5,27 @@ from strategy.robots.skill.route import NormalMovement
 
 class OurAttackerAction():
     def __init__(self):
-        self.name = "OurAttackerAction"
+        self.name = "OurActionAttacker"
         self.blackboard = Blackboard()
 
-    def __call__(self, id, **kwds):
-        self.movement = NormalMovement(id)
-        return self.movement.run()
+    def __call__(self, **kwds):
+        self.movement = NormalMovement()
+        return self.movement.moveToCenter()
 
-    def run(self, id):
-        self.movement = NormalMovement(id)
-        return self.movement.run()
+    def run(self):
+        self.movement = NormalMovement()
+        return self.movement.moveToCenter()
 
 
 class TheirAttackerAction():
     def __init__(self):
-        self.name = "TheirAttackerAction"
+        self.name = "TheirActionAttacker"
         self.blackboard = Blackboard()
 
-    def __call__(self, id, **kwds):
-        self.movement = NormalMovement(id)
-        return self.movement.run()
+    def __call__(self, **kwds):
+        self.movement = NormalMovement()
+        return self.movement.moveToCenter()
         
-    def run(self, id):
-        self.movement = NormalMovement(id)
-        return self.movement.run()
+    def run(self):
+        self.movement = NormalMovement()
+        return self.movement.moveToCenter()

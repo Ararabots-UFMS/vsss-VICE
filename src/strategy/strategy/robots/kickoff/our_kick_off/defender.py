@@ -4,23 +4,23 @@ from strategy.robots.skill.route import NormalMovement
 
 """Contains all KickOffActions the robot must do (in order or not) during the match"""
 
-class OurActionAttacker():
+class OurActionDefender():
     def __init__(self):
-        self.name = "OurActionAttacker"
+        self.name = "OurAttackerAction"
         self.blackboard = Blackboard()
 
     def __call__(self, **kwds):
         self.movement = NormalMovement()
-        return self.movement.moveToCenter()
+        return self.movement.outsideCenterCircle()
 
     def run(self):
         self.movement = NormalMovement()
-        return self.movement.moveToCenter()
+        return self.movement.outsideCenterCircle()
 
 
-class TheirActionAttacker():
+class TheirActionDefender():
     def __init__(self):
-        self.name = "TheirActionAttacker"
+        self.name = "TheirAttackerAction"
         self.blackboard = Blackboard()
 
     def __call__(self, **kwds):
