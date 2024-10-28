@@ -24,7 +24,8 @@ class RefereeNode(Node):
 
         # ROS2 Publisher
         self.publisher_ = self.create_publisher(RefereeMessage, 'refereeTopic', 10)
-        self.timer_ = self.create_timer(0.001, self.listen_to_multicast)
+        # with 0.01 seconds in timer, referee receive msgs by one second
+        self.timer_ = self.create_timer(0.01, self.listen_to_multicast)
         self.last_message = RefereeMessage()
 
         self.get_logger().info(f"Listening for multicast messages on {self.ip}:{self.port}")
