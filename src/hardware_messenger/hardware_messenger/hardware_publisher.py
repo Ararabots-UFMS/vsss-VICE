@@ -7,7 +7,6 @@ from grsim_messenger.protobuf.grSim_Packet_pb2 import grSim_Packet
 from grsim_messenger.protobuf.grSim_Commands_pb2 import grSim_Robot_Command
 
 from system_interfaces.msg import TeamCommand, GUIMessage
-from system_interfaces.srv import ConnectRobot
 from grsim_messenger.inverse_kinematics import apply_inverse_kinematics
 
 
@@ -33,14 +32,24 @@ class HardwarePublisher(Node):
         name = "B"
         velocities_format = "fff"
         kick = "B"
-        not_used = "B" * (32 - len(name) - len(kick) - len(velocities_format) * 4)
-        self.robot_command_format = name + velocities_format + kick + not_used
+        control_values = "fff"
+        self.unused_count = (
+            32
+            - len(name)
+            - len(kick)
+            - (len(control_values) + len(velocities_format)) * 4
+        )
+        not_used = "B" * self.unused_count
+        self.robot_command_format = (
+            name + velocities_format + kick + control_values + not_used
+        )
 
-        self.robot_names = {0: "J", 1: "K", 2: "E"}
+        self.robots = {}
 
         self._command = []
+        self.robot_count = 0
 
-        self.serial_writer = serial.Serial(self.port, self.baudrate)
+        # self.serial_writer = serial.Serial(self.port, self.baudrate)
 
         self.commandSubscriber = self.create_subscription(
             TeamCommand, "commandTopic", self.translate_command, 10
@@ -57,37 +66,45 @@ class HardwarePublisher(Node):
     def publish_command(self):
         if len(self._command) == 0:
             return
-        self.serial_writer.write(struct.pack(self.format_string, *self._command))
+        print(self._command)
+        # self.serial_writer.write(struct.pack(self.format_string, *self._command))
 
     def gui_callback(self, message):
-        # self.robot_names = message.robot_names
-        pass
+        self.robot_count = message.robot_count
 
-    # TODO: Add address
+        for robot in message.robots:
+            self.robots[robot.id] = robot
+
     def translate_command(self, command):
         self._command = []
 
-        self.format_string = "=" + self.robot_command_format * 3
+        self.format_string = "=" + self.robot_command_format * self.robot_count
 
-        unused_bytes = [0 for _ in range(14, 32)]
+        unused_bytes = [0 for _ in range(self.unused_count)]
 
-        for i in range(3):
-            if 7 < len(command.robots):
+        for i in range(self.robot_count):
+            if i < len(command.robots):
                 robot = command.robots[i]
                 robot_command = [
-                    ord(self.robot_names[robot.robot_id]),
+                    ord(self.robots[robot.robot_id].name[0]),
                     float(robot.linear_velocity_x),
                     float(robot.linear_velocity_y),
                     float(robot.angular_velocity),
                     int(robot.kick),
+                    float(self.robots[robot.robot_id].kp),
+                    float(self.robots[robot.robot_id].ki),
+                    float(self.robots[robot.robot_id].kd),
                 ]
             else:
                 robot_command = [
-                    ord(self.robot_names[i]),
+                    ord("Z"),
                     0.0,
                     0.0,
                     0.0,
                     0,
+                    0.0,
+                    0.0,
+                    0.0,
                 ]
 
             robot_command.extend(unused_bytes)
