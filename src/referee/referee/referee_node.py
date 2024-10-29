@@ -28,7 +28,6 @@ class RefereeNode(Node):
         self.last_message = RefereeMessage()
 
         self.get_logger().info(f"Listening for multicast messages on {self.ip}:{self.port}")
-        self.listen_to_multicast()
 
     def listen_to_multicast(self):
         """Listen to multicast messages and publish to ROS2 topic."""

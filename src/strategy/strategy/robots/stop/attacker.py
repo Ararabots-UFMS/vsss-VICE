@@ -1,5 +1,5 @@
 from strategy.blackboard import Blackboard
-from strategy.robots.skill.route import BreakStrategy
+from strategy.skill.route import BreakStrategy
 
 """Contains all HaltActions the robot must do (in order or not) during the match"""
 

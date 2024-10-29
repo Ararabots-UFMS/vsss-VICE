@@ -1,6 +1,6 @@
 
 from strategy.blackboard import Blackboard
-from strategy.robots.skill.route import NormalMovement
+from strategy.skill.route import NormalMovement
 
 """Contains all KickOffActions the robot must do (in order or not) during the match"""
 
