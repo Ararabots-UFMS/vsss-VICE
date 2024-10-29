@@ -3,11 +3,7 @@ import rclpy
 import serial
 import struct
 
-from grsim_messenger.protobuf.grSim_Packet_pb2 import grSim_Packet
-from grsim_messenger.protobuf.grSim_Commands_pb2 import grSim_Robot_Command
-
 from system_interfaces.msg import TeamCommand, GUIMessage
-from grsim_messenger.inverse_kinematics import apply_inverse_kinematics
 
 
 class HardwarePublisher(Node):
