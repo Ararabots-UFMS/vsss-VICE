@@ -19,6 +19,7 @@ class Robot(Node):
         self.move = Movement(self.id)
         self.trajectory = Trajectory(3)  # Degrees of freedom = 3
         self.trajectory_start_time = 0
+        self.kick = False
 
         self.timer = self.create_timer(0.1, self.run)
 
