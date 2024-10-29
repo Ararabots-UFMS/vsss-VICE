@@ -10,9 +10,6 @@ from system_interfaces.msg import TeamCommand, GUIMessage
 from grsim_messenger.inverse_kinematics import apply_inverse_kinematics
 
 
-import time
-
-
 class HardwarePublisher(Node):
     def __init__(self) -> None:
         super().__init__("hardware_publisher")
@@ -51,9 +48,6 @@ class HardwarePublisher(Node):
             GUIMessage, "guiTopic", self.gui_callback, 10
         )
 
-        # Wait for at least one gui message
-        time.sleep(1)
-
         self.timer = self.create_timer(
             1 / 60, self.publish_command
         )  # publish to serial at 60Hz
@@ -70,7 +64,6 @@ class HardwarePublisher(Node):
                 pass
             self.serial_writer.write(struct.pack(self.format_string, *self._command))
             self.serial_writer.reset_input_buffer()
-            print(len(self._command))
 
     def gui_callback(self, message):
         self.robot_count = message.robot_count
@@ -88,6 +81,7 @@ class HardwarePublisher(Node):
 
         for robot in command.robots:
             robot_command = [
+                ord(self.robots[robot.robot_id].name[0]),
                 float(robot.linear_velocity_x),
                 float(robot.linear_velocity_y),
                 float(robot.angular_velocity),
