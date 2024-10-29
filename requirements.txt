@@ -1,2 +1,6 @@
 flask
-rclpy
+flask-socketio
+ruckig
+pyserial
+protobuf
+numpy

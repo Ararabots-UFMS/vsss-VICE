@@ -1,6 +1,7 @@
 *.pyc
 
 .vscode/
+.venv/
 
 .devcontainer/
 build/

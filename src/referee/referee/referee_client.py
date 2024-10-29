@@ -39,7 +39,7 @@ def timeout(seconds=1.0, error_message="Function call timed out"):
 class Client:
     """Client that handles the UDP multicast communication for SSL referee messages."""
 
-    def __init__(self, ip: str, port: int, buffer_size: int = 1024):
+    def __init__(self, ip: str, port: int, buffer_size: int):
         self.ip = ip
         self.port = port
         self.buffer_size = buffer_size
