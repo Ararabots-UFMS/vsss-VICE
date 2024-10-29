@@ -26,34 +26,30 @@ class Coach(Node):
 
     def update(self):
         # If a robot is in the blackboard and it doens't exist, it is created
-        for ally_robot in self.blackboard.ally_robots.values():
+        for ally_robot in self.blackboard.gui.robots:
             try:
                 self.robots[ally_robot.id]
             except:
-                # TODO: implementar nome dos robos
-                self.robots[ally_robot.id] = Robot(
-                    ally_robot.id, f"robo{ally_robot.id}"
-                )
+                self.robots[ally_robot.id] = Robot(ally_robot.id, ally_robot.name)
                 self._executor.add_node(self.robots[ally_robot.id])
 
         # If a robot is not in the blackboard, it is destroyed
         # The list is used to avoid "RuntimeError: dictionary changed size during iteration"
-        for robot in list(self.robots.values()):
-            if not any(
-                robot.id == ally_robot.id
-                for ally_robot in self.blackboard.ally_robots.values()
-            ):
-                self.get_logger().info(f"Destroying robot {robot.id}")
-                self._executor.remove_node(self.robots[robot.id])
-                self.robots[robot.id].destroy_node()
-                self.robots.pop(robot.id)
+        if len(self.robots) > self.blackboard.gui.robot_count:
+            for robot in list(self.robots.values()):
+                if robot.id not in [
+                    ally_robot.id for ally_robot in self.blackboard.gui.robots
+                ]:
+                    self._executor.remove_node(self.robots[robot.id])
+                    self.robots[robot.id].destroy_node()
+                    self.robots.pop(robot.id)
 
     def run(self):
-        # self.get_logger().info(f"Running")
+        self.get_logger().info(f"Running")
         # The code below just create a simple behaviour tree which is available in strategy
-        log_tree.level = log_tree.Level.DEBUG
-        tree = make_bt(self.blackboard.referee.command)
-        tree.tick_once() 
+        # log_tree.level = log_tree.Level.DEBUG
+        # tree = make_bt(self.blackboard.referee.command)
+        # tree.tick_once()
         # self.behaviour_tree.run(self.blackboard)
 
 
