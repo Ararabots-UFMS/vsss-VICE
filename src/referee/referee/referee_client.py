@@ -54,7 +54,7 @@ class Client:
         mreq = struct.pack("4sl", socket.inet_aton(self.ip), socket.INADDR_ANY)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
-    @timeout(0.005)
+    @timeout(0.0005)
     def receive(self):
         """Receive a message from the multicast group and return it as raw data."""
         try:
