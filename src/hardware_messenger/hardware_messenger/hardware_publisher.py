@@ -19,7 +19,7 @@ class HardwarePublisher(Node):
 
         # Parameters settings.
         self.declare_parameter("port", "/dev/ttyUSB0")
-        self.declare_parameter("baudrate", 230400)
+        self.declare_parameter("baudrate", 2000000)
 
         self.port = self.get_parameter("port").get_parameter_value().string_value
         self.baudrate = (
@@ -33,23 +33,15 @@ class HardwarePublisher(Node):
         velocities_format = "fff"
         kick = "B"
         control_values = "fff"
-        self.unused_count = (
-            32
-            - len(name)
-            - len(kick)
-            - (len(control_values) + len(velocities_format)) * 4
-        )
-        not_used = "B" * self.unused_count
-        self.robot_command_format = (
-            name + velocities_format + kick + control_values + not_used
-        )
+        self.robot_command_format = name + velocities_format + kick + control_values
 
         self.robots = {}
 
         self._command = []
         self.robot_count = 0
+        self.first_message_sent = False
 
-        # self.serial_writer = serial.Serial(self.port, self.baudrate)
+        self.serial_writer = serial.Serial(self.port, self.baudrate)
 
         self.commandSubscriber = self.create_subscription(
             TeamCommand, "commandTopic", self.translate_command, 10
@@ -59,6 +51,9 @@ class HardwarePublisher(Node):
             GUIMessage, "guiTopic", self.gui_callback, 10
         )
 
+        # Wait for at least one gui message
+        time.sleep(1)
+
         self.timer = self.create_timer(
             1 / 60, self.publish_command
         )  # publish to serial at 60Hz
@@ -66,8 +61,16 @@ class HardwarePublisher(Node):
     def publish_command(self):
         if len(self._command) == 0:
             return
-        print(self._command)
-        # self.serial_writer.write(struct.pack(self.format_string, *self._command))
+        elif not self.first_message_sent and self.robot_count != 0:
+            self.get_logger().info(f"Sending robot count {self.robot_count}")
+            self.serial_writer.write(struct.pack("B", *[self.robot_count]))
+            self.first_message_sent = True
+        else:
+            while self.serial_writer.in_waiting == 0:
+                pass
+            self.serial_writer.write(struct.pack(self.format_string, *self._command))
+            self.serial_writer.reset_input_buffer()
+            print(len(self._command))
 
     def gui_callback(self, message):
         self.robot_count = message.robot_count
@@ -78,36 +81,21 @@ class HardwarePublisher(Node):
     def translate_command(self, command):
         self._command = []
 
+        if self.robot_count == 0:
+            return
+
         self.format_string = "=" + self.robot_command_format * self.robot_count
 
-        unused_bytes = [0 for _ in range(self.unused_count)]
-
-        for i in range(self.robot_count):
-            if i < len(command.robots):
-                robot = command.robots[i]
-                robot_command = [
-                    ord(self.robots[robot.robot_id].name[0]),
-                    float(robot.linear_velocity_x),
-                    float(robot.linear_velocity_y),
-                    float(robot.angular_velocity),
-                    int(robot.kick),
-                    float(self.robots[robot.robot_id].kp),
-                    float(self.robots[robot.robot_id].ki),
-                    float(self.robots[robot.robot_id].kd),
-                ]
-            else:
-                robot_command = [
-                    ord("Z"),
-                    0.0,
-                    0.0,
-                    0.0,
-                    0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ]
-
-            robot_command.extend(unused_bytes)
+        for robot in command.robots:
+            robot_command = [
+                float(robot.linear_velocity_x),
+                float(robot.linear_velocity_y),
+                float(robot.angular_velocity),
+                int(robot.kick),
+                float(self.robots[robot.robot_id].kp),
+                float(self.robots[robot.robot_id].ki),
+                float(self.robots[robot.robot_id].kd),
+            ]
 
             self._command.extend(robot_command)
 
