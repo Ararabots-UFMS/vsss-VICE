@@ -39,10 +39,13 @@ class PathAcceptor:
             for obs in obstacles:
                 if type(obs) != RobotObstacle:
                     if obs.is_colission((position[0], position[1])):
-                        return AcceptorStatus.INSIDEAREA, obs
+                        if current_time < 0.02:
+                            return (AcceptorStatus.INSIDEAREA, obs)
+                        else:
+                            return (AcceptorStatus.COLLISION, obs)
                 else:
                     if obs.is_colission(current_time, (position[0], position[1])):
-                        return AcceptorStatus.COLLISION, obs
+                        return (AcceptorStatus.COLLISION, obs)
 
             # TODO Not using dynamic step size
             current_time += control_cycle

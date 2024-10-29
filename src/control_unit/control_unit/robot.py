@@ -1,7 +1,8 @@
 from rclpy.node import Node
 
 from time import time
-from math import sqrt
+from math import sqrt, pi, cos, sin
+from random import uniform
 
 from strategy.blackboard import Blackboard
 from movement.move import Movement
@@ -9,7 +10,7 @@ from movement.move import Movement
 from movement.path import path_profiles as profiles
 from movement.path.path_acceptor import AcceptorStatus
 from movement.obstacles.dynamic_obstacles import RobotObstacle
-from movement.obstacles.static_obstacles import PenaltyAreaObstacles
+from movement.obstacles.static_obstacles import PenaltyAreaObstacles, BoundaryObstacles, WallObstacles
 
 
 from ruckig import Trajectory
@@ -29,7 +30,11 @@ class Robot(Node):
 
         self.trajectory_start_time = 0.0
         self.acceptance_radius = 100
-        self.min_correction_time = 0.2
+
+        self.bypass_time = 2
+        self.bypass_min_radius = 500
+        self.bypass_max_radius = 2500
+        self.bypass_trys = 20
 
         self.behaviour_command = {"obstacles" : None, 
                                 "path_profile" : None,
@@ -40,23 +45,24 @@ class Robot(Node):
 
         self.exit_area_command = {"obstacles" : [],
                                 "path_profile" : profiles.MovementProfiles.Normal,
-                                "orientation_profile" : profiles.DirectionProfiles.Aim,
+                                "orientation_profile" : profiles.DirectionProfiles.Break,
                                 "sync" : False,
                                 "path_kwargs" : None,
-                                "orientation_kwargs" : {"theta" : 0}}
+                                "orientation_kwargs" : {}}
 
         self.bypass_command = {"obstacles" : None, 
                                 "path_profile" : profiles.MovementProfiles.Normal,
-                                "orientation_profile" : profiles.DirectionProfiles.Aim,
+                                "orientation_profile" : profiles.DirectionProfiles.Break,
                                 "sync" : False,
                                 "path_kwargs" : None, 
-                                "orientation_kwargs" : {"theta" : 0}}
+                                "orientation_kwargs" : {}}
 
         self.current_command = self.behaviour_command
 
         self.current_status: AcceptorStatus = None
 
         self.running = self.create_timer(1/60, self.run)
+        self.enforcer = self.create_timer(0.5, self.enforce_path)
 
 
         ####
@@ -78,12 +84,12 @@ class Robot(Node):
         #     self.test_time = time()
         #     return
 
-        command = {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry)], 
-                   "path_profile" : profiles.MovementProfiles.Break,
-                   "orientation_profile" : profiles.DirectionProfiles.Aim,
+        command = {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry), WallObstacles(self.blackboard.geometry)], 
+                   "path_profile" : profiles.MovementProfiles.Normal,
+                   "orientation_profile" : profiles.DirectionProfiles.Break,
                    "sync" : False,
-                   "path_kwargs" : {}, 
-                   "orientation_kwargs" : {"theta" : 0}}
+                   "path_kwargs" : {"goal_state" : (4000, 2800)}, 
+                   "orientation_kwargs" : {}}
 
         # ---------------------------
         # ----------- END -----------
@@ -98,54 +104,140 @@ class Robot(Node):
         self.behaviour_command = command
 
         if self.correct_positioning(self.acceptance_radius):
+            self.get_logger().info("CONFERINDO")
             from_vision = True
         
         self.update_trajectory(from_vision)
+
+    def enforce_path(self):
+        self.get_logger().info("ENFORCING")
+        result = self.move(self.get_state(from_vision=True), **self.current_command)
+        if type(result[0]) != AcceptorStatus:
+            self.path_trajectory, self.orientation_trajectory = result
 
     def update_trajectory(self, from_vision: bool = False) -> None:
         ''' Updates or enforces robot trajectory and checking and solving for collision and area limitations conflits '''
         result = self.move(self.get_state(from_vision), **self.behaviour_command)
         # Result can be either two paths if accepted or a acceptor status and a obstacle if not.
-        
+
         if(result[0] == AcceptorStatus.INSIDEAREA):
+            # self.get_logger().info(f"INSIDEAREA")
             self.exit_area(result[1]) # result[1] is a obstacle area.
-            self.current_status = AcceptorStatus.INSIDEAREA
 
         elif(result[0] == AcceptorStatus.COLLISION):
-            bypass_point = self.solve_collision()
+            self.solve_collision()
         
-        elif type(result) != AcceptorStatus:
+        elif type(result[0]) != AcceptorStatus:
+            #self.get_logger().info(f"NORMAL")
             self.current_status = None
             self.current_command = self.behaviour_command
 
             self.path_trajectory, self.orientation_trajectory = result
+            self.trajectory_start_time = time()
 
-        self.trajectory_start_time = time()
         return None
 
     def correct_positioning(self, acceptance_radius) -> bool:
         ''' Corrects position error when finalizing trajectory '''
-        if self.get_relative_time() > self.path_trajectory.duration * 0.9:
-            expected_position, _ = self.get_state(from_vision=False)
-            real_position, _ = self.get_state(from_vision=True)
+        # expected_position, expected_velocity = self.get_state(from_vision=False)
+        # real_position, real_velocity = self.get_state(from_vision=True)
 
-            diff = sqrt((expected_position[0] - real_position[0]) ** 2 + (expected_position[1] - real_position[1]) ** 2)
-            if diff > acceptance_radius:
-                self.get_logger().info(f"CORRECTION {expected_position, real_position} == {diff}")
-                return True
+        # diff = sqrt((expected_position[0] - real_position[0]) ** 2 + (expected_position[1] - real_position[1]) ** 2)
+        # vel_diff = sqrt((expected_velocity[0] - real_velocity[0]) ** 2 + (expected_velocity[1] - real_velocity[1]) ** 2)
+
+        # if self.get_relative_time() > self.path_trajectory.duration * 0.1:
+        #     if diff > acceptance_radius or vel_diff > acceptance_radius:
+        #         self.get_logger().info(f"CORRECTION {expected_position, real_position} == {diff}")
+        #         return True
 
         return False
 
     def solve_collision(self):
-        pass
+        if self.current_status == AcceptorStatus.COLLISION and self.get_relative_time() > self.path_trajectory.duration:
+            if self.correct_positioning(acceptance_radius=self.acceptance_radius):
+                result = self.move(self.get_state(from_vision=True), **self.bypass_command)
+                if type(result[0]) != AcceptorStatus:
+                    self.path_trajectory, self.orientation_trajectory = result
+
+                self.current_command = self.bypass_command
+                self.trajectory_start_time = time()
+
+            else:
+                self.current_status = None
+                return
+
+        if self.current_status == AcceptorStatus.COLLISION and self.get_relative_time() < self.path_trajectory.duration:
+            from_vision = False
+
+        else:
+            real_position, _ = self.get_state(from_vision=True)
+
+            best_command = None
+            best_time = float("inf")
+
+            for _ in range(self.bypass_trys):
+                random_angle = uniform(-pi, pi)
+                random_radius = uniform(self.bypass_min_radius, self.bypass_max_radius)
+                random_point = [real_position[0] + random_radius * cos(random_angle), real_position[1] + random_radius * sin(random_angle)]
+
+                command = self.bypass_command
+                command["path_profile"] = profiles.MovementProfiles.Normal
+                command["obstacles"] = self.behaviour_command["obstacles"]
+                command["path_kwargs"] = {"goal_state" : random_point}
+
+                bypass_result = self.move(self.get_state(from_vision=True), **command)
+                if type(bypass_result[0]) == AcceptorStatus:
+                    continue
+
+                state = bypass_result[0].at_time(bypass_result[0].duration)[:2]
+                ostate = bypass_result[1].at_time(bypass_result[1].duration)[:2]
+
+                state[0].append(ostate[0][0])
+                state[1].append(ostate[1][0])
+
+                new_result = self.move(state, **self.behaviour_command)
+
+                if type(new_result[0]) == AcceptorStatus:
+                    continue
+
+                duration = new_result[0].duration
+                if duration < best_time:
+                    best_command = command
+                    best_time = duration
+
+
+            if not best_command:
+                self.current_status = None
+                self.bypass_command = {"obstacles" : [], 
+                            "path_profile" : profiles.MovementProfiles.Break,
+                            "orientation_profile" : profiles.DirectionProfiles.Break,
+                            "sync" : False,
+                            "path_kwargs" : {}, 
+                            "orientation_kwargs" : {}}
+
+            else:
+                self.get_logger().info(f"BEST COMMMAND {state}")
+                self.bypass_command = best_command
+                self.current_status = AcceptorStatus.COLLISION
+
+            from_vision = True
+
+        # if self.correct_positioning(acceptance_radius = 10):
+        #     from_vision = True
+
+        result = self.move(self.get_state(from_vision), **self.bypass_command)
+        if type(result[0]) != AcceptorStatus:
+            self.path_trajectory, self.orientation_trajectory = result
+
+        self.current_command = self.bypass_command
+        self.trajectory_start_time = time()
 
     def exit_area(self, obs):
-        if self.current_status == AcceptorStatus.INSIDEAREA:
+        if self.current_status == AcceptorStatus.INSIDEAREA and self.get_relative_time() < self.path_trajectory.duration:
             from_vision = False
 
         else:
             point = obs.closest_outside_point(self.get_state(from_vision=True)[0][:2])
-            self.get_logger().info(f"{point}")
             from_vision = True
 
             self.exit_area_command["path_kwargs"] = {"goal_state" : (point[0], point[1])}
@@ -156,6 +248,8 @@ class Robot(Node):
         self.path_trajectory, self.orientation_trajectory = self.move(self.get_state(from_vision), **self.exit_area_command)
 
         self.current_command = self.exit_area_command
+        self.current_status = AcceptorStatus.INSIDEAREA
+        self.trajectory_start_time = time()
         
     def get_state(self, from_vision: bool):
         ''' Retuns a predicted state from current trajectory or use measured state from vision '''

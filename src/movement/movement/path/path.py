@@ -1,4 +1,6 @@
+from utils.math_utils import orientation_solver
 from movement.path.path_profiles import PathProfile, OrientationProfile
+
 from ruckig import InputParameter, OutputParameter, Result, Ruckig, Trajectory
 
 from typing import List, Optional, Tuple
@@ -7,7 +9,7 @@ from typing import List, Optional, Tuple
 class PathGenerator:
     def __init__(
         self,
-        constrainsts: Tuple[List[float]] = ([2500, 2500, 1], [1000, 1000, 0.5]),
+        constrainsts: Tuple[List[float]] = ([1500, 1500, 1], [1000, 1000, 0.5]),
     ):
         self.vel_constrainst = constrainsts[0]
         self.acc_constrainst = constrainsts[1]
@@ -37,5 +39,8 @@ class PathGenerator:
 
         path_profile.generate(inp_path, **kwargs["path_kwargs"])
         orientation_profile.generate(inp_orientation, **kwargs["orientation_kwargs"])
+
+
+        inp_orientation.current_position[0], inp_orientation.target_position[0] = orientation_solver(inp_orientation.current_position[0], inp_orientation.target_position[0])
 
         return inp_path, inp_orientation

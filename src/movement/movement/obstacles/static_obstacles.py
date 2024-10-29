@@ -5,6 +5,7 @@ from typing import Tuple
 
 from math import copysign
 
+
 # This needs to change to use the FieldLineSegment instead of the distances
 class BoundaryObstacles(StaticObstacle):
     def __init__(self, geometry: VisionGeometry):
@@ -35,9 +36,6 @@ class BoundaryObstacles(StaticObstacle):
         Returns:
         bool: If the point is inside the field boundaries
         ''' 
-
-        
-        
 
         if point[0] < self.left_goal_line.x1 + padding or point[0] > self.right_goal_line.x1 - padding:
             return True
@@ -75,7 +73,7 @@ class BoundaryObstacles(StaticObstacle):
         elif point[1] > self.top_line.y1 - padding:
             y_distance = abs(point[1] - self.top_line.y1) + padding + offset
 
-        return [point[0] + copysign(x_distance, point[0]), point[1] + copysign(y_distance, point[1])]
+        return [point[0] - copysign(x_distance, point[0]), point[1] - copysign(y_distance, point[1])]
 
 class WallObstacles(StaticObstacle):
     def __init__(self, geometry: VisionGeometry):
@@ -95,7 +93,7 @@ class WallObstacles(StaticObstacle):
         self.boundary_width = geometry.boundary_width
 
 
-    def is_colission(self, point: Tuple[float, float], padding: float = 90) -> bool:
+    def is_colission(self, point: Tuple[float, float], padding: float = 100) -> bool:
         '''
         Check if the point is inside the field boundaries
 
@@ -116,7 +114,7 @@ class WallObstacles(StaticObstacle):
         
         return False
 
-    def closest_outside_point(self, point: Tuple[float, float], offset: float = 90, padding: float = 90) -> Tuple[float, float]:
+    def closest_outside_point(self, point: Tuple[float, float], offset: float = 90, padding: float = 100) -> Tuple[float, float]:
         '''
         Return the closest point outside the field boundaries on the x and y axis
 
@@ -131,20 +129,20 @@ class WallObstacles(StaticObstacle):
         x_distance = 0
         y_distance = 0
 
-        if point[0] < self.left_goal.x1 - self.boundary_width - padding:
-            x_distance = abs(point[0] - self.left_goal.x1) + self.boundary_width + offset + padding
+        if point[0] < self.left_goal.x1 - self.boundary_width + padding:
+            x_distance = abs(point[0] - self.left_goal.x1) + offset + padding
         
-        elif point[0] > self.right_goal.x1 + self.boundary_width + padding:
-            x_distance = abs(point[0] - self.right_goal.x1) + self.boundary_width + offset + padding
+        elif point[0] > self.right_goal.x1 + self.boundary_width - padding:
+            x_distance = abs(point[0] - self.right_goal.x1) + offset + padding
 
-        if point[1] < self.bottom_line.y1 - self.boundary_width - padding:
-            y_distance = abs(point[1] - self.bottom_line.y1) + self.boundary_width + offset + padding
+        if point[1] < self.bottom_line.y1 - self.boundary_width + padding:
+            y_distance = abs(point[1] - self.bottom_line.y1) + offset + padding
 
-        elif point[1] > self.top_line.y1 + self.boundary_width + padding:
-            y_distance = abs(point[1] - self.top_line.y1) + self.boundary_width + offset + padding
+        elif point[1] > self.top_line.y1 + self.boundary_width - padding:
+            y_distance = abs(point[1] - self.top_line.y1) + offset + padding
 
 
-        return [point[0] + copysign(x_distance, point[0]), point[1] + copysign(y_distance, point[1])]
+        return [point[0] - copysign(x_distance, point[0]), point[1] - copysign(y_distance, point[1])]
 
 class PenaltyAreaObstacles(StaticObstacle):
     def __init__(self, geometry: VisionGeometry):
@@ -170,7 +168,7 @@ class PenaltyAreaObstacles(StaticObstacle):
             elif line.name == 'RightFieldRightPenaltyStretch':
                 self.right_field_right_penalty = line
 
-    def is_colission(self, point: Tuple[float, float], padding: float = 90) -> bool:
+    def is_colission(self, point: Tuple[float, float], padding: float = 180) -> bool:
         '''
         Check if the point is inside the field boundaries
 
@@ -183,12 +181,12 @@ class PenaltyAreaObstacles(StaticObstacle):
         
         
         # For the left field area
-        if point[0] > self.left_field_left_penalty.x1 + padding and point[0] < self.left_field_left_penalty.x2 + padding:
+        if point[0] > self.left_field_left_penalty.x1 - padding and point[0] < self.left_field_left_penalty.x2 + padding:
             if point[1] < self.left_field_left_penalty.y1 + padding and point[1] > self.left_field_right_penalty.y1 - padding:
                 return True
 
         # For the right field side
-        if point[0] < self.right_field_left_penalty.x1 - padding  and point[0] > self.right_field_left_penalty.x2 - padding:
+        if point[0] < self.right_field_left_penalty.x1 + padding  and point[0] > self.right_field_left_penalty.x2 - padding:
             if point[1] > self.right_field_left_penalty.y1 - padding and point[1] < self.right_field_right_penalty.y1 + padding:
                 return True
 
@@ -209,7 +207,7 @@ class PenaltyAreaObstacles(StaticObstacle):
         x_distance = 0
         y_distance = 0
 
-        if point[0] > self.left_field_left_penalty.x1 + padding and point[0] < self.left_field_left_penalty.x2 + padding:
+        if point[0] > self.left_field_left_penalty.x1 - padding and point[0] < self.left_field_left_penalty.x2 + padding:
             if point[1] < self.left_field_left_penalty.y1 + padding and point[1] > self.left_field_right_penalty.y1 - padding:
                 
                 x_distance = abs(point[0] - self.left_penalty.x1) + padding + offset
@@ -217,7 +215,7 @@ class PenaltyAreaObstacles(StaticObstacle):
                 y_distance = min(abs(point[1] - self.left_field_left_penalty.y1), abs(point[1] - self.left_field_right_penalty.y1)) + padding + offset
                 
         
-        if point[0] < self.right_field_left_penalty.x1 - padding  and point[0] > self.right_field_left_penalty.x2 - padding:
+        if point[0] < self.right_field_left_penalty.x1 + padding  and point[0] > self.right_field_left_penalty.x2 - padding:
             if point[1] > self.right_field_left_penalty.y1 - padding and point[1] < self.right_field_right_penalty.y1 + padding:
                 
                 x_distance = abs(point[0] - self.right_penalty.x1) + padding + offset
@@ -231,4 +229,4 @@ class PenaltyAreaObstacles(StaticObstacle):
         else:
             y_distance = 0
  
-        return [point[0] + copysign(x_distance, point[0]), point[1] + copysign(y_distance, point[1])]
+        return [point[0] - copysign(x_distance, point[0]), point[1] + copysign(y_distance, point[1])]

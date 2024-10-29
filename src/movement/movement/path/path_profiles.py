@@ -116,13 +116,14 @@ class SpinProfile(OrientationProfile):
 
 class BypassProfile(PathProfile):
     ''' Should not be used in strategy, in case of collision, it's a alternative deviation path '''
-    def generate(inp: InputParameter):
+    def generate(inp: InputParameter, min_duration: float):
         inp.control_interface = ControlInterface.Velocity
 
-        random_values = [uniform(-1, 1), uniform(-1, 1)]
+        random_angle = uniform(0, 3.14)
 
-        inp.target_velocity = [inp.max_velocity[0], inp.max_velocity[1]]
-        inp.target_acceleration = [inp.max_acceleration[0] * random_values[0], inp.max_acceleration[1] * random_values[1]]
+        inp.target_velocity = [inp.max_velocity[0] * cos(random_angle), inp.max_velocity[1] * sin(random_angle)]
+        inp.target_acceleration = [0, 0]
+        inp.minimum_duration = min_duration
 
         return None
 

@@ -58,7 +58,7 @@ class Movement:
 
         else:
             # TODO make parameters changeable.
-            return AcceptorStatus.COLLISION
+            return AcceptorStatus.COLLISION, collision_obs
             # return self.solve_collision(init_state, obstacles, trys=10, bypass_time=1.5, path_profile=path_profile, **kwargs)
         
 
