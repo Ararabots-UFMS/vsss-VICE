@@ -40,9 +40,17 @@ from rclpy.node import Node
 from time import time
 from math import sqrt, pi, cos, sin
 from random import uniform
+from math import sqrt, pi, cos, sin
+from random import uniform
 
 from strategy.blackboard import Blackboard
 from movement.move import Movement
+
+from movement.path import path_profiles as profiles
+from movement.path.path_acceptor import AcceptorStatus
+from movement.obstacles.dynamic_obstacles import RobotObstacle
+from movement.obstacles.static_obstacles import PenaltyAreaObstacles, BoundaryObstacles, WallObstacles
+
 
 from movement.path import path_profiles as profiles
 from movement.path.path_acceptor import AcceptorStatus
@@ -55,9 +63,11 @@ from ruckig import Trajectory
 class Robot(Node):
     def __init__(self, id, name) -> None:
         super().__init__(f"{name}")
+        super().__init__(f"{name}")
         self.blackboard = Blackboard()
         self.name = name
         self.id = id
+        self.behaviour = None
         self.behaviour = None
 
         self.move = Movement(self.id)
