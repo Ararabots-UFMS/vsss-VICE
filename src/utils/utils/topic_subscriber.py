@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from system_interfaces.msg import VisionMessage, GUIMessage, GameData
+from system_interfaces.msg import VisionMessage, GUIMessage, RefereeMessage
 
 from system_interfaces.msg import VisionMessage
 
@@ -26,7 +26,7 @@ def main(args=None):
     rclpy.init(args=args)
     node = TopicSubscriber("vision_subs1", VisionMessage, "visionTopic")
     # node = TopicSubscriber('gui_subs', GUIMessage, 'guiTopic')
-    # node = TopicSubscriber('referee_subs', GameData, '/referee_messages')
+    # node = TopicSubscriber('referee_subs', RefereeMessage, '/referee_messages')
     while True:
         rclpy.spin_once(node)
         print(node.get_message())
