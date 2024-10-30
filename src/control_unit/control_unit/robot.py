@@ -7,7 +7,6 @@
 
 # from ruckig import Trajectory
 
-# from strategy.coach.kickoff import Kickoff
 
 
 # class Robot(Node):
@@ -28,10 +27,10 @@
 #     def run(self):
 #         if self.behaviour_tree != None and self.behaviour_tree != "None":
 #             self.get_logger().info(f"Running robot {self.id}")
-#             profile = self.behaviour_tree(self.id)
+#             profile = self.behaviour_tree()
 #             print(profile)
-#             # self.trajectory = self.move(profile)
-#             self.trajectory_start_time = time()
+            # self.trajectory = self.move(profile)
+            # self.trajectory_start_time = time()
 
 ### Fabio Code
 
@@ -67,8 +66,7 @@ class Robot(Node):
         self.blackboard = Blackboard()
         self.name = name
         self.id = id
-        self.behaviour = None
-        self.behaviour = None
+        self.behaviour_tree = None
 
         self.move = Movement(self.id)
 
@@ -83,12 +81,12 @@ class Robot(Node):
         self.bypass_max_radius = 2500
         self.bypass_trys = 20
 
-        # self.behaviour_command = {"obstacles" : None, 
-        #                         "path_profile" : None,
-        #                         "orientation_profile" : None,
-        #                         "sync" : None,
-        #                         "path_kwargs" : None, 
-        #                         "orientation_kwargs" : None}
+        self.behaviour_command = {"obstacles" : None, 
+                                "path_profile" : None,
+                                "orientation_profile" : None,
+                                "sync" : None,
+                                "path_kwargs" : None, 
+                                "orientation_kwargs" : None}
 
         self.exit_area_command = {"obstacles" : [],
                                 "path_profile" : profiles.MovementProfiles.Normal,
@@ -104,7 +102,7 @@ class Robot(Node):
                                 "path_kwargs" : None, 
                                 "orientation_kwargs" : {}}
 
-        self.current_command = self.behaviour
+        self.current_command = self.behaviour_tree
 
         self.current_status: AcceptorStatus = None
 
@@ -131,9 +129,10 @@ class Robot(Node):
         #     self.test_time = time()
         #     return
 
-        if self.behaviour != None and self.behaviour != "None":
+        if self.behaviour_tree != None and self.behaviour_tree != "None":
             self.get_logger().info(f"Running robot {self.id}")
-            command = self.behaviour()
+            self.behaviour_command = self.behaviour_tree()
+            self.current_command = self.behaviour_tree()
 
         # command = {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry), WallObstacles(self.blackboard.geometry)], 
         #            "path_profile" : profiles.MovementProfiles.Normal,
@@ -147,13 +146,11 @@ class Robot(Node):
 
         # Recalculating route if behaviour tree changes commands.
         # Using Dict comprehensions to ignore obstacles while comparing...
-        if command != None:
-            if ({k: v for k,v in self.current_command.items() if k not in ["obstacles"]} != {k: v for k,v in command.items() if k not in ["obstacles"]}): # Excluing obstacles comparisons, review this...
+        if self.current_command != None and self.current_command != "None":
+            if ({k: v for k,v in self.current_command.items() if k not in ["obstacles"]} != {k: v for k,v in self.current_command.items() if k not in ["obstacles"]}): # Excluing obstacles comparisons, review this...
                 from_vision = True
             else:
                 from_vision = False # Using ideal predicted states over mesuared to enforce same trajectory.
-            
-            self.behaviour = command
 
             if self.correct_positioning(self.acceptance_radius):
                 self.get_logger().info("CONFERINDO")
@@ -162,14 +159,17 @@ class Robot(Node):
             self.update_trajectory(from_vision)
 
     def enforce_path(self):
-        self.get_logger().info("ENFORCING")
-        result = self.move(self.get_state(from_vision=True), **self.current_command)
-        if type(result[0]) != AcceptorStatus:
-            self.path_trajectory, self.orientation_trajectory = result
+        if self.current_command != None and self.current_command != "None":
+            self.get_logger().info("ENFORCING")
+            result = self.move(self.get_state(from_vision=True), **self.current_command)
+            if type(result[0]) != AcceptorStatus:
+                self.path_trajectory, self.orientation_trajectory = result
 
     def update_trajectory(self, from_vision: bool = False) -> None:
+        print(self.behaviour_command)
         ''' Updates or enforces robot trajectory and checking and solving for collision and area limitations conflits '''
-        result = self.move(self.get_state(from_vision), **self.behaviour)
+        result = self.move(self.get_state(from_vision), **self.behaviour_command)
+        print(result)
         # Result can be either two paths if accepted or a acceptor status and a obstacle if not.
 
         if(result[0] == AcceptorStatus.INSIDEAREA):
@@ -182,7 +182,7 @@ class Robot(Node):
         elif type(result[0]) != AcceptorStatus:
             #self.get_logger().info(f"NORMAL")
             self.current_status = None
-            self.current_command = self.behaviour
+            self.current_command = self.behaviour_command
 
             self.path_trajectory, self.orientation_trajectory = result
             self.trajectory_start_time = time()
@@ -234,7 +234,7 @@ class Robot(Node):
 
                 command = self.bypass_command
                 command["path_profile"] = profiles.MovementProfiles.Normal
-                command["obstacles"] = self.behaviour["obstacles"]
+                command["obstacles"] = self.behaviour_command["obstacles"]
                 command["path_kwargs"] = {"goal_state" : random_point}
 
                 bypass_result = self.move(self.get_state(from_vision=True), **command)
@@ -247,7 +247,7 @@ class Robot(Node):
                 state[0].append(ostate[0][0])
                 state[1].append(ostate[1][0])
 
-                new_result = self.move(state, **self.behaviour)
+                new_result = self.move(state, **self.behaviour_command)
 
                 if type(new_result[0]) == AcceptorStatus:
                     continue

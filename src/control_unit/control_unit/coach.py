@@ -59,18 +59,15 @@ class Coach(Node):
     def run(self):
         # self.get_logger().info(f"Running")
         # The code below just create a simple behaviour tree which is available in strategy
-        # for robot in list(self.robots.values()):
-        #     print(kickoff.run()[1])
-            
-        #     self.robots[robot.id].behaviour_tree = kickoff.run()[1]
         strategy = CoachStrategy("CoachStrategy")
         print(strategy.run()[1])
-        self.behaviour_tree = strategy.run()[1]
-        if self.behaviour_tree != None and self.behaviour_tree != "None":
-            profile = self.behaviour_tree()
-            print(profile)
-
-
+        # self.behaviour_tree = strategy.run()[1]
+        # if self.behaviour_tree != None and self.behaviour_tree != "None":
+        #     profile = self.behaviour_tree()
+        #     print(profile)
+        for robot in list(self.robots.values()):            
+            self.robots[robot.id].behaviour_tree = strategy.run()[1]
+        
         # for bt in bts:
         #     robot.tree = bt
         # self.behaviour_tree.run(self.blackboard)

@@ -1,4 +1,4 @@
-from movement.path.path_profiles import MovementProfiles
+from movement.path.path_profiles import MovementProfiles, DirectionProfiles
 from strategy.blackboard import Blackboard
 
 
@@ -17,11 +17,10 @@ class NormalMovement():
         """Moviment to point when the robot is not goalkeeper"""
         return {"obstacles" : self.blackboard.enemy_robots,
                 "path_profile" : MovementProfiles.Normal,
-                # "orientation": DirectionProfile.Aim,
+                "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
                 "path_kwargs" : {"goal_state" : (90,0)},
-                "orientation_kwargs" : {"theta" : 0},
-                "type": "moveToCenter"}
+                "orientation_kwargs" : {"theta" : 0}}
     
     def centerLineGoal(self):
         
@@ -29,22 +28,20 @@ class NormalMovement():
 
         return {"obstacles" : [],
                 "path_profile" : MovementProfiles.Normal,
-                # "orientation": DirectionProfile.Aim,
+                "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
                 "path_kwargs" : {"goal_state" : (2160,0)},
-                "orientation_kwargs" : {"theta" : 0},
-                "type" : "centerLineGoal"}
+                "orientation_kwargs" : {"theta" : 0}}
     
     def outsideCenterCircle(self):
         """"Moviment to the center of our goal"""
 
         return {"obstacles" : [],
                 "path_profile" : MovementProfiles.Normal,
-                # "orientation": DirectionProfile.Aim,
+                "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
                 "path_kwargs" : {"goal_state" : (600,0)},
-                "orientation_kwargs" : {"theta" : 0},
-                "type" : "outsideCenterCircle"}
+                "orientation_kwargs" : {"theta" : 0}}
       
         
     def moveToPenaltyKicker(self):
@@ -56,58 +53,50 @@ class NormalMovement():
         if self.blackboard.gui._is_field_side_left: # point (-750,0) turned to right
             return {"obstacles" : [],
                 "path_profile" : MovementProfiles.Normal,
-                # "orientation": DirectionProfile.Aim,
+                "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
                 "path_kwargs" : {"goal_state" : (660,0)},
-                "orientation_kwargs" : {"theta" : 0},
-                "type" : "moveToPenaltyKicker"}
+                "orientation_kwargs" : {"theta" : 0}}
         else: # point(750,0), turned to left
             return {"obstacles" : [],
                 "path_profile" : MovementProfiles.Normal,
-                # "orientation": DirectionProfile.Aim,
+                "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
                 "path_kwargs" : {"goal_state" : (-660,0)},
-                "orientation_kwargs" : {"theta" : 3.14},
-                "type" : "moveToPenaltyKicker"}
+                "orientation_kwargs" : {"theta" : 3.14}}
     
     def moveToPenaltyDefender(self):
         if self.blackboard.gui._is_field_side_left: # point (-750,0) turned to right
             return {"obstacles" : [],
                 "path_profile" : MovementProfiles.Normal,
-                # "orientation": DirectionProfile.Aim,
+                "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
                 "path_kwargs" : {"goal_state" : (-250,0)},
-                "orientation_kwargs" : {"theta" : 0},
-                "type" : "moveToPenaltyDefender"}
+                "orientation_kwargs" : {"theta" : 0}}
         else: # point(750,0), turned to left
             return {"obstacles" : [],
                 "path_profile" : MovementProfiles.Normal,
-                # "orientation": DirectionProfile.Aim,
+                "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
                 "path_kwargs" : {"goal_state" : (250,0)},
-                "orientation_kwargs" : {"theta" : 3.14},
-                "type" : "moveToPenaltyDefender"}
+                "orientation_kwargs" : {"theta" : 3.14}}
     
     def moveToFreeKick(self):
         #TODO adjust properly free-kick
         if self.blackboard.gui._is_field_side_left: # point (-750,0) turned to right
             return {"obstacles" : [],
                 "path_profile" : MovementProfiles.Normal,
-                # "orientation": DirectionProfile.Aim,
+                "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
                 "path_kwargs" : {"goal_state" : (-90,0)},
-                "orientation_kwargs" : {"theta" : 0},
-                "type" : "moveToFreeKick"
-                }
+                "orientation_kwargs" : {"theta" : 0}}
         else: # point(750,0), turned to left
             return {"obstacles" : [],
                 "path_profile" : MovementProfiles.Normal,
-                # "orientation": DirectionProfile.Aim,
+                "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
                 "path_kwargs" : {"goal_state" : (-660,0)},
-                "orientation_kwargs" : {"theta" : 3.14},
-                "type" : "moveToFreeKick"
-                }
+                "orientation_kwargs" : {"theta" : 3.14}}
 
             
 
@@ -124,7 +113,7 @@ class StraightMovement():
 
         return {"obstacles" : self.blackboard.enemy_robots,
                 "path_profile" : MovementProfiles.Straight,
-                # "orientation": DirectionProfile.Aim,
+                "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
                 "orientation_kwargs" : {"theta" : 0}}
         
@@ -142,8 +131,9 @@ class BreakStrategy():
 
     def _break(self):
         return {"obstacles" : self.blackboard.enemy_robots,
-                "path_profile" : MovementProfiles.Straight,
-                # "orientation": DirectionProfile.Aim,
+                "path_profile" : MovementProfiles.Break,
+                "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
-                "type" : "Break"}
+                "path_kwargs" : None,
+                "orientation_kwargs" : {}}
         
