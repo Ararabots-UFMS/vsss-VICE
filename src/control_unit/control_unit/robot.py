@@ -129,7 +129,9 @@ class Robot(Node):
         #     self.test_time = time()
         #     return
 
-        if self.behaviour_tree != None and self.behaviour_tree != "None":
+        # behaviour_command: dict = self.behaviour_tree()
+
+        if self.behaviour_tree != "None":
             self.get_logger().info(f"Running robot {self.id}")
             self.behaviour_command = self.behaviour_tree()
             self.current_command = self.behaviour_tree()

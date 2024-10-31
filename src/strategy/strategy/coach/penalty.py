@@ -12,9 +12,9 @@ class CheckState(LeafNode):
 
     def run(self):
         if self.blackboard.referee.command in self.desired_states:
-            return TaskStatus.SUCCESS, "None"
+            return TaskStatus.SUCCESS, None
 
-        return TaskStatus.FAILURE, "None"
+        return TaskStatus.FAILURE, None
     
 class CheckIfOurPenalty(LeafNode):
     def __init__(self, name):
@@ -30,9 +30,9 @@ class CheckIfOurPenalty(LeafNode):
             success = True
         
         if success:
-            return TaskStatus.SUCCESS, "None"
+            return TaskStatus.SUCCESS, None
         else:
-            return TaskStatus.FAILURE, "None"
+            return TaskStatus.FAILURE, None
 
 class OurPenaltyAction(LeafNode):
     def __init__(self, name):

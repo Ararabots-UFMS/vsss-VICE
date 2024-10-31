@@ -60,7 +60,9 @@ class thread_with_exception(threading.Thread):
 
 class APINode(Node):
     def __init__(
-        self, name, executor, vision_event, communication_event, referee_event
+        self, name, executor, vision_event,
+        # communication_event,
+        # referee_event
     ):
         super().__init__(name)
 
@@ -72,11 +74,11 @@ class APINode(Node):
         self.vision_subscriber = None
         self.vision_node = Vision()
 
-        self.communication_running = communication_event
-        self.communication_node = grSimPublisher()
+        # self.communication_running = communication_event
+        # self.communication_node = grSimPublisher()
 
-        self.referee_running = referee_event
-        self.referee_node = RefereeNode()
+        # self.referee_running = referee_event
+        # self.referee_node = RefereeNode()
 
         self.robots = []
         self.robot_count = 0
@@ -138,41 +140,41 @@ class APINode(Node):
 
             self.executor.add_node(self.vision_node)
 
-    def handle_communication_button(self):
-        if self.communication_running.is_set():
-            self.communication_running.clear()
-            self.executor.remove_node(self.communication_node)
-            gui_socket.emit(
-                "communicationOutput", {"line": "Communication node stopped"}
-            )
-            gui_socket.emit(
-                "communicationStatus", {"status": self.communication_running.is_set()}
-            )
-            self.get_logger().info("Communication node stopped")
-        else:
-            self.communication_running.set()
-            gui_socket.emit(
-                "communicationOutput", {"line": "Starting communication node"}
-            )
-            gui_socket.emit(
-                "communicationStatus", {"status": self.communication_running.is_set()}
-            )
-            self.get_logger().info("Starting communication node")
-            self.executor.add_node(self.communication_node)
+    # def handle_communication_button(self):
+    #     if self.communication_running.is_set():
+    #         self.communication_running.clear()
+    #         self.executor.remove_node(self.communication_node)
+    #         gui_socket.emit(
+    #             "communicationOutput", {"line": "Communication node stopped"}
+    #         )
+    #         gui_socket.emit(
+    #             "communicationStatus", {"status": self.communication_running.is_set()}
+    #         )
+    #         self.get_logger().info("Communication node stopped")
+    #     else:
+    #         self.communication_running.set()
+    #         gui_socket.emit(
+    #             "communicationOutput", {"line": "Starting communication node"}
+    #         )
+    #         gui_socket.emit(
+    #             "communicationStatus", {"status": self.communication_running.is_set()}
+    #         )
+    #         self.get_logger().info("Starting communication node")
+    #         self.executor.add_node(self.communication_node)
 
-    def handle_referee_button(self):
-        if self.referee_running.is_set():
-            self.referee_running.clear()
-            self.executor.remove_node(self.referee_node)
-            gui_socket.emit("refereeOutput", {"line": "Referee node stopped"})
-            gui_socket.emit("refereeStatus", {"status": self.referee_running.is_set()})
-            self.get_logger().info("Referee node stopped")
-        else:
-            self.referee_running.set()
-            gui_socket.emit("referee", {"line": "Starting referee node"})
-            gui_socket.emit("refereeStatus", {"status": self.referee_running.is_set()})
-            self.get_logger().info("Starting referee node")
-            self.executor.add_node(self.referee_node)
+    # def handle_referee_button(self):
+    #     if self.referee_running.is_set():
+    #         self.referee_running.clear()
+    #         self.executor.remove_node(self.referee_node)
+    #         gui_socket.emit("refereeOutput", {"line": "Referee node stopped"})
+    #         gui_socket.emit("refereeStatus", {"status": self.referee_running.is_set()})
+    #         self.get_logger().info("Referee node stopped")
+    #     else:
+    #         self.referee_running.set()
+    #         gui_socket.emit("referee", {"line": "Starting referee node"})
+    #         gui_socket.emit("refereeStatus", {"status": self.referee_running.is_set()})
+    #         self.get_logger().info("Starting referee node")
+    #         self.executor.add_node(self.referee_node)
 
     def create_message(self) -> GUIMessage:
         msg = GUIMessage()
@@ -207,7 +209,9 @@ def main(args=None):
     rclpy.init(args=args)
     executor = MultiThreadedExecutor(num_threads=2)
     node = APINode(
-        "api_node", executor, vision_running, communication_running, referee_running
+        "api_node", executor, vision_running,
+        # communication_running,
+        # referee_running
     )
     gui_socket.on_event("connect", node.handle_connect, namespace="")
     gui_socket.on_event("disconnect", node.handle_disconnect, namespace="")
@@ -215,10 +219,10 @@ def main(args=None):
     gui_socket.on_event("teamColor", node.handle_team_color, namespace="")
     gui_socket.on_event("fieldMode", node.handle_simulation, namespace="")
     gui_socket.on_event("visionButton", node.handle_vision_button, namespace="")
-    gui_socket.on_event(
-        "communicationButton", node.handle_communication_button, namespace=""
-    )
-    gui_socket.on_event("refereeButton", node.handle_referee_button, namespace="")
+    # gui_socket.on_event(
+    #     "communicationButton", node.handle_communication_button, namespace=""
+    # )
+    # gui_socket.on_event("refereeButton", node.handle_referee_button, namespace="")
     gui_socket.on_event("configSaveButton", node.handle_config_button, namespace="")
     try:
         thread = thread_with_exception(gui_socket)
