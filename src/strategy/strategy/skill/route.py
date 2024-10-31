@@ -106,23 +106,16 @@ class NormalMovement():
                 "path_kwargs" : {"goal_state" : (-1250,0)},
                 "orientation_kwargs" : {"theta" : 0}}
     
-    def moveToFreeKick(self):
-        #TODO adjust properly free-kick
-        if self.blackboard.gui._is_field_side_left: # point (-750,0) turned to right
-            return {"obstacles" : [],
-                "path_profile" : MovementProfiles.Normal,
-                "orientation_profile": DirectionProfiles.Aim,
-                "sync" : False,
-                "path_kwargs" : {"goal_state" : (-90,0)},
-                "orientation_kwargs" : {"theta" : 0}}
-        else: # point(750,0), turned to left
-            return {"obstacles" : [],
-                "path_profile" : MovementProfiles.Normal,
-                "orientation_profile": DirectionProfiles.Aim,
-                "sync" : False,
-                "path_kwargs" : {"goal_state" : (-660,0)},
-                "orientation_kwargs" : {"theta" : 3.14}}
+#self.blackboard.balls[0].position_x
 
+    def moveToBall(self):
+        return {"obstacles" : [],
+            "path_profile" : MovementProfiles.Normal,
+            "orientation_profile": DirectionProfiles.Aim,
+            "sync" : False,
+            "path_kwargs" : {"goal_state" : (self.blackboard.balls[0].position_x + 120,self.blackboard.balls[0].position_y + 120)},
+            "orientation_kwargs" : {"theta" : 0}}
+       
             
 
 

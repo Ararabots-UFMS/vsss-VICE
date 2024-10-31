@@ -10,11 +10,11 @@ class OurAttackerAction():
 
     def __call__(self, **kwds):
         self.movement = NormalMovement()
-        return self.movement.moveToCenter()
+        return self.movement.moveToBall()
 
     def run(self):
         self.movement = NormalMovement()
-        return self.movement.moveToCenter()
+        return self.movement.moveToBall()
 
 
 class TheirAttackerAction():
