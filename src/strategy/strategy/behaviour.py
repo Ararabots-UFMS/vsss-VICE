@@ -74,7 +74,7 @@ class Selector(TreeNode):
             status, action = c.run()
             if status != TaskStatus.FAILURE:
                 return status, action
-        return TaskStatus.FAILURE, "None"
+        return TaskStatus.FAILURE, None
     
 class BaseTree(Selector):
     def __init__(self, name, children):

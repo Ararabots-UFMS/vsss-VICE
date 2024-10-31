@@ -116,35 +116,17 @@ class Robot(Node):
 
     def run(self):
         ''' Runs robot behaviour tree and updates trajectorys based on commands received '''
-
-        # ----- Only for testing -----
-        # ----------------------------
-        # position = (0, 0)
-        # t = time() - self.test_time
-        # if t < 10:
-        #     position = (3500, 0)
-        # elif t < 20:
-        #     position = (-3500, 0)
-        # elif t >= 20:
-        #     self.test_time = time()
-        #     return
-
-        # behaviour_command: dict = self.behaviour_tree()
-
-        if self.behaviour_tree != "None":
-            self.get_logger().info(f"Running robot {self.id}")
-            self.behaviour_command = self.behaviour_tree()
+        if self.behaviour_tree != None:
+            self.behaviour_command: dict = self.behaviour_tree()
             self.current_command = self.behaviour_tree()
+        else:
+            self.behaviour_command = self.current_command
+            
 
-        # command = {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry), WallObstacles(self.blackboard.geometry)], 
-        #            "path_profile" : profiles.MovementProfiles.Normal,
-        #            "orientation_profile" : profiles.DirectionProfiles.Break,
-        #            "sync" : False,
-        #            "path_kwargs" : {"goal_state" : (4000, 2800)}, 
-        #            "orientation_kwargs" : {}}
 
-        # ---------------------------
-        # ----------- END -----------
+        # if self.behaviour_tree != "None":
+        #     self.get_logger().info(f"Running robot {self.id}")
+        #     self.behaviour_command = self.behaviour_tree()
 
         # Recalculating route if behaviour tree changes commands.
         # Using Dict comprehensions to ignore obstacles while comparing...

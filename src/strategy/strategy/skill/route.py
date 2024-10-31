@@ -91,20 +91,20 @@ class NormalMovement():
                 "orientation_kwargs" : {"theta" : pi}}
     
     def moveToPenaltyDefender(self):
-        if self.blackboard.gui._is_field_side_left: # point (-750,0) turned to right
-            return {"obstacles" : [],
-                "path_profile" : MovementProfiles.Normal,
-                "orientation_profile": DirectionProfiles.Aim,
-                "sync" : False,
-                "path_kwargs" : {"goal_state" : (-1250,0)},
-                "orientation_kwargs" : {"theta" : 0}}
-        else: # point(750,0), turned to left
+        if self.blackboard.gui._is_field_side_left:
             return {"obstacles" : [],
                 "path_profile" : MovementProfiles.Normal,
                 "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
                 "path_kwargs" : {"goal_state" : (1250,0)},
                 "orientation_kwargs" : {"theta" : pi}}
+        else: # point(750,0), turned to left
+            return {"obstacles" : [],
+                "path_profile" : MovementProfiles.Normal,
+                "orientation_profile": DirectionProfiles.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (-1250,0)},
+                "orientation_kwargs" : {"theta" : 0}}
     
     def moveToFreeKick(self):
         #TODO adjust properly free-kick

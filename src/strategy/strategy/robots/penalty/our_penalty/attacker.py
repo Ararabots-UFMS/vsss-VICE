@@ -26,8 +26,8 @@ class TheirActionAttacker():
 
     def __call__(self):
         self.movement = NormalMovement() # TODO remove this class
-        return self.movement.moveToPenaltyKicker()
+        return self.movement.moveToPenaltyDefender()
 
     def run(self):
         self.movement = NormalMovement() # TODO remove this class
-        return self.movement.moveToPenaltyKicker()
+        return self.movement.moveToPenaltyDefender()
