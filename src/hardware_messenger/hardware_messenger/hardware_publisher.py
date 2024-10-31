@@ -44,6 +44,10 @@ class HardwarePublisher(Node):
             GUIMessage, "guiTopic", self.gui_callback, 10
         )
 
+        self.get_logger().info(
+            f"Hardware publisher initialized with port {self.port} and baudrate {self.baudrate}"
+        )
+
         self.timer = self.create_timer(
             1 / 60, self.publish_command
         )  # publish to serial at 60Hz
