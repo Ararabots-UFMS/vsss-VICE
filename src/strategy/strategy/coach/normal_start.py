@@ -3,50 +3,81 @@ from strategy.blackboard import Blackboard
 from strategy.behaviour import LeafNode, Sequence, Selector
 from strategy.behaviour import TaskStatus
 
+class CheckCondition(LeafNode):
+    def __init__(self, name):
+        super().__init__(name)
+        self.name = name
 
-class NormalStart(Selector):
+    def run(self):
+        status = True
+        if status:
+            return TaskStatus.SUCCESS, None
+        else:
+            return TaskStatus.FAILURE, None
+
+
+
+class IsTheirPossession(LeafNode):
+    def __init__(self, name):
+        self.name =name
+        
+    def run(self):
+        return TaskStatus.SUCCESS, "IS_THEIR_POSSESSION"
+        
+
+class IsOurPossession(LeafNode):
+    def __init__(self, name):
+        self.name =name
+
+    def run(self):    
+        return TaskStatus.SUCCESS, "IS_OUR_POSSESSION"
+
+
+
+class CheckStart(LeafNode):
+    def __init__(self, name, commands):
+        self.blackboard = Blackboard()
+        self.name = name
+        self.commands = commands
+
+    def run(self):
+        if self.blackboard.referee.command in self.commands:
+            return TaskStatus.SUCCESS, None
+        
+        return TaskStatus.FAILURE, None
+
+
+class Running(Sequence):
     def __init__(self, name):
         super().__init__(name, [])
 
-
-
+        self.blackboard = Blackboard()
         
+        commands = ["NORMAL_START", "FORCE_START"]
+
+        is_running = CheckStart("CheckStart", commands)
+        
+        ours_action = IsOurPossession("IsOurPossession")
+
+        ours_with_ball = CheckCondition("CheckOurCondition")
+
+        theirs_action = IsTheirPossession("IsTheirPossession")
+
+        theirs_with_ball = CheckCondition("CheckTheirCondition")
+
+        ours = Sequence("OursNormalStart", [ours_with_ball, ours_action])
+
+        theirs = Sequence("TheirNormalStart", [theirs_with_ball, theirs_action])
+
+        running_selector = Selector("RunningSelector", [theirs, ours])
+
+
+        self.add_children([is_running, running_selector])
+
     def run(self):
         return super().run()
 
-
-
-class CheckOurPossession(LeafNode):
-    def __init__(self, name):
-        super().__init__(name)
-        self.blackboard = Blackboard()
-
-    def run(self):
-        if self.blackboard.get("our_possession"):
-            return TaskStatus.SUCCESS
-        else:
-            return TaskStatus.FAILURE
-
-
-
-
-class BallPossession(Selector):
-    def __init__(self, name):
-        super().__init__(name, [])
-        
-
-        is_our_possession = CheckOurPossession("Check Our Possession")
-        is_their_possession = LeafNode("Check Their Possession")
-
-        behavier_with_ball = "vai"
-
-        behavier_no_ball = "nao vai"
-
-        our_possession = Sequence("Our Possession", [is_our_possession, behavier_with_ball]) 
-
-        they_possession = Sequence("They Possession", [is_their_possession, behavier_with_ball])
-
-        self.add_children([our_possession, they_possession])
-
-
-
+       
+if __name__ == "__main__":
+    root = Running("StartRoot")
+    root.run()

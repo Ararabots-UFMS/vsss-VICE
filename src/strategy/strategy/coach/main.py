@@ -7,6 +7,7 @@ from strategy.coach.kickoff import Kickoff
 from strategy.coach.penalty import Penalty
 from strategy.coach.stop import Stop
 from strategy.coach.timeout import _Timeout
+from strategy.coach.normal_start import Running
 
 class CoachStrategy(Selector):
     def __init__(self, name):
@@ -17,8 +18,9 @@ class CoachStrategy(Selector):
         penalty = Penalty("Penalty")
         timeout = _Timeout("Timeout")
         halt = Halt("Halt")
+        running = Running("Running")
 
-        self.add_children([stop, halt, kickoff, freekick, penalty, timeout])
+        self.add_children([stop, halt, kickoff, freekick, penalty, timeout, running])
 
     def run(self):
         return super().run()
