@@ -49,9 +49,9 @@ class GetInAngleProfile(PathProfile):
     def generate(inp: InputParameter, goal_state: Tuple[float, float], theta: float):
         inp.control_interface = ControlInterface.Position
 
-        # Using 50% of the total velocity.
+        # Using 10% of the total velocity.
         bottleneck_vel = inp.max_velocity[0] if inp.max_velocity[0] < inp.max_velocity[1] else inp.max_velocity[1]
-        arriving_velocity = bottleneck_vel * 0.5
+        arriving_velocity = bottleneck_vel * 0.2
         
         inp.target_position = [goal_state[0], goal_state[1]]
         inp.target_velocity = [arriving_velocity * cos(theta) , arriving_velocity * sin(theta)]

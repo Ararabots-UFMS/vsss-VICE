@@ -93,7 +93,7 @@ class WallObstacles(StaticObstacle):
         self.boundary_width = geometry.boundary_width
 
 
-    def is_colission(self, point: Tuple[float, float], padding: float = 100) -> bool:
+    def is_colission(self, point: Tuple[float, float], padding: float = 90) -> bool:
         '''
         Check if the point is inside the field boundaries
 
@@ -114,7 +114,7 @@ class WallObstacles(StaticObstacle):
         
         return False
 
-    def closest_outside_point(self, point: Tuple[float, float], offset: float = 90, padding: float = 100) -> Tuple[float, float]:
+    def closest_outside_point(self, point: Tuple[float, float], offset: float = 20, padding: float = 90) -> Tuple[float, float]:
         '''
         Return the closest point outside the field boundaries on the x and y axis
 
@@ -168,7 +168,7 @@ class PenaltyAreaObstacles(StaticObstacle):
             elif line.name == 'RightFieldRightPenaltyStretch':
                 self.right_field_right_penalty = line
 
-    def is_colission(self, point: Tuple[float, float], padding: float = 180) -> bool:
+    def is_colission(self, point: Tuple[float, float], padding: float = 90) -> bool:
         '''
         Check if the point is inside the field boundaries
 
@@ -192,7 +192,7 @@ class PenaltyAreaObstacles(StaticObstacle):
 
         return False
 
-    def closest_outside_point(self, point: Tuple[float, float], offset: float = 90, padding: float = 90) -> Tuple[float, float]:
+    def closest_outside_point(self, point: Tuple[float, float], offset: float = 10, padding: float = 90) -> Tuple[float, float]:
         '''
         Return the closest point outside the field boundaries on the x and y axis
         
@@ -221,8 +221,6 @@ class PenaltyAreaObstacles(StaticObstacle):
                 x_distance = abs(point[0] - self.right_penalty.x1) + padding + offset
 
                 y_distance = min(abs(point[1] - self.right_field_left_penalty.y1), abs(point[1] - self.right_field_right_penalty.y1)) + padding + offset
-
-        print(x_distance, y_distance)
 
         if x_distance > y_distance:
             x_distance = 0
