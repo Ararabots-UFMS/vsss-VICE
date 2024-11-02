@@ -50,10 +50,7 @@ class Coach(Node):
 
     def run(self):
         # self.get_logger().info(f"Running")
-        # The code below just create a simple behaviour tree which is available in strategy
-        log_tree.level = log_tree.Level.DEBUG
-        tree = make_bt(self.blackboard.referee.command)
-        tree.tick_once() 
+        pass
         # self.behaviour_tree.run(self.blackboard)
 
 
