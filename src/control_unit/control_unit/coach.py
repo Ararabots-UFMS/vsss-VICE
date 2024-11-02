@@ -4,6 +4,8 @@ import rclpy
 
 from control_unit.robot import Robot
 from strategy.blackboard import Blackboard
+from strategy.play.strategy_node import make_bt
+from py_trees import logging as log_tree
 
 
 class Coach(Node):

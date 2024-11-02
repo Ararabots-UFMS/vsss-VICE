@@ -19,11 +19,12 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/VisionMessage.msg"
   "msg/Balls.msg"
   "msg/Robots.msg"
-  "msg/GameData.msg"
+  "msg/RefereeMessage.msg"
   "msg/TeamData.msg"
   "msg/GUIMessage.msg"
   "msg/RobotCommand.msg"
   "msg/TeamCommand.msg"
+  "msg/GUIRobot.msg"
 )
 
 if(BUILD_TESTING)
