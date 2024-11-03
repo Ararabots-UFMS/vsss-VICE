@@ -15,6 +15,7 @@ import numpy as np
 
 
 from movement.obstacles.static_obstacles import PenaltyAreaObstacles, BoundaryObstacles, WallObstacles
+from movement.obstacles.dynamic_obstacles import RobotObstacle
 
 class Robot(Node):
     def __init__(self, id: int, name: str, max_velocity = 3000, max_angular_vel = 1, max_acceleration = 1000, max_angular_acc = 0.5):
@@ -27,14 +28,20 @@ class Robot(Node):
 
         self.move = Movement(self.id, bypass_trys = 100, bypass_time = 0.5, bypass_max_radius = 2500)
 
-        self.path_trajectory = Trajectory(2)
-        self.orientation_trajectory = Trajectory(1)
+        _, (self.path_trajectory, self.orientation_trajectory) = self.move(self.get_state(), obstacles = [],
+                                                                      path_profile = MovementProfiles.Break,
+                                                                      orientation_profile = DirectionProfiles.Break,
+                                                                      sync = False,
+                                                                      path_kwargs = {},
+                                                                      orientation_kwargs = {})
 
         self.trajectory_start_time = time()
         self.acceptance_radius = 0
 
         self.controller = Controller(max_velocity, max_angular_vel)
         self.controller.set_initial_guess(self.get_state()[0])
+        self.controller.set_trajectory(self.path_trajectory, self.orientation_trajectory)
+        self.controller.reset_history()
 
         self.current_command = None
         self.status = RobotStatus.NORMAL
@@ -44,16 +51,32 @@ class Robot(Node):
 
         self.velocities = np.array([0, 0, 0])
 
+        self.test = time()
+
     def run(self):
         # command = self.behaviour()
+        if time() - self.test < 15:
+            point = (-2000, 0)
+            theta = -3.14/2
+        elif time() - self.test < 30:
+            point = (2000, 0)
+            theta = 3.13/2
+        else:
+            self.test = time()
+            point = (-2000, 0)
+
         command = {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry),
                                   BoundaryObstacles(self.blackboard.geometry),
-                                  WallObstacles(self.blackboard.geometry)], 
+                                  WallObstacles(self.blackboard.geometry),
+                                  RobotObstacle(self.blackboard.enemy_robots[0])], 
             "path_profile" : MovementProfiles.Normal,
             "orientation_profile" : DirectionProfiles.Aim,
             "sync" : False,
-            "path_kwargs" : {"goal_state": (-0,-0)}, 
+            "path_kwargs" : {"goal_state": point}, 
             "orientation_kwargs" : {"theta": 0}}
+        
+        if command == None:
+            command = self.current_command
 
         self.update_trajectory(command)
 
@@ -62,7 +85,7 @@ class Robot(Node):
 
         if ((status != self.status or self.check_command_change(command)) or
             (not self.check_acceptance_radius and self.get_relative_time() > self.path_trajectory.duration)):
-            if self.status != RobotStatus.COLLISION or self.get_relative_time() > self.path_trajectory.duration:
+            if self.status != RobotStatus.COLLISION or self.path_trajectory.duration < self.get_relative_time():
                 self.path_trajectory = path_trajectory
                 self.orientation_trajectory = orientation_trajectory
                 self.trajectory_start_time = time()
