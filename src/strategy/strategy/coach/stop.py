@@ -20,7 +20,7 @@ class StopAction(LeafNode):
         super().__init__(name)
 
     def run(self):
-        return TaskStatus.SUCCESS, AttackerAction()
+        return TaskStatus.SUCCESS, AttackerAction("AttackerAction")
     
 class Stop(Sequence):
     def __init__(self, name):

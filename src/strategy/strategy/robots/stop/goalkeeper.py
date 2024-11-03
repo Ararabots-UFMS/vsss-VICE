@@ -1,7 +1,7 @@
 from strategy.blackboard import Blackboard
 from strategy.skill.route import BreakStrategy
 
-"""Contains all HaltActions the robot must do (in order or not) during the match"""
+"""Contains all StopActions the robot must do (in order or not) during the match"""
 
 class GoalKeeperAction():
     def __init__(self):

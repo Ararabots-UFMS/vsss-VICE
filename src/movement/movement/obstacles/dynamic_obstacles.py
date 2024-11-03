@@ -1,11 +1,13 @@
 from movement.obstacles.interfaces import DynamicObstacle
 from system_interfaces.msg import Robots
 
-from typing import Tuple
+from typing import List, Tuple
 
 from math import sqrt, copysign
 
 from ruckig import InputParameter, OutputParameter, Result, Ruckig, Trajectory, ControlInterface
+
+from system_interfaces.msg._vision_message import VisionMessage
 
 
 class RobotObstacle(DynamicObstacle):
@@ -97,3 +99,30 @@ class RobotObstacle(DynamicObstacle):
 
     def update_state(self, state: Robots) -> None:
         self.state = state
+
+class BallObstacle(DynamicObstacle):
+
+    def __init__(self, geometry: VisionMessage, radius: float = 22):
+        self.ball = geometry.balls[0]
+        self.radius = radius
+        
+
+    def is_colission(self, ref_point: Tuple[float, float], ref_radius = 90, stop_distance: float = 500 , use_dynamic: bool = False) -> bool:
+
+        dynamic_center, dynamic_radius = self.get_dynamic_range() if use_dynamic else ([self.ball.position_x, self.ball.position_y], self.radius)
+        
+        distance = sqrt((dynamic_center[0] - ref_point[0])**2 + (dynamic_center[1] - ref_point[1])**2)
+
+        if distance < dynamic_radius + ref_radius + stop_distance:
+            return True
+        
+        return False
+
+    def get_dynamic_range(self) -> Tuple[Tuple[float, float], float]:
+        pass
+
+    def update_state(self, x: Tuple[List[float]]) -> None:
+        pass
+
+
+    

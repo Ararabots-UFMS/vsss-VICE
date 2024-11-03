@@ -1,4 +1,5 @@
 import math
+from movement.obstacles.dynamic_obstacles import BallObstacle
 from movement.obstacles.static_obstacles import BoundaryObstacles, PenaltyAreaObstacles, WallObstacles
 from movement.path.path_profiles import MovementProfiles, DirectionProfiles
 from strategy.blackboard import Blackboard
@@ -107,21 +108,38 @@ class NormalMovement():
                 "path_kwargs" : {"goal_state" : (-1250,0)},
                 "orientation_kwargs" : {"theta" : 0}}
     
-#self.blackboard.balls[0].position_x
 
     def moveToBall(self):
         position_x = (self.blackboard.ally_robots[0].position_x) - (self.blackboard.balls[0].position_x)
         position_y = (self.blackboard.ally_robots[0].position_y) - (self.blackboard.balls[0].position_y)
         tang = position_y/position_x
 
-        return {"obstacles" : [],
+        if self.blackboard.gui._is_field_side_left:
+            return {"obstacles" : [],
+            "path_profile" : MovementProfiles.Normal,
+            "orientation_profile": DirectionProfiles.Aim,
+            "sync" : False,
+            "path_kwargs" : {"goal_state" : (self.blackboard.balls[0].position_x - 120,self.blackboard.balls[0].position_y)},
+            "orientation_kwargs" : {"theta" : math.atan(tang)}}
+        else: 
+            return {"obstacles" : [],
             "path_profile" : MovementProfiles.Normal,
             "orientation_profile": DirectionProfiles.Aim,
             "sync" : False,
             "path_kwargs" : {"goal_state" : (self.blackboard.balls[0].position_x + 120,self.blackboard.balls[0].position_y)},
-            "orientation_kwargs" : {"theta" : math.atan(tang)- 180}}
-       
-            
+            "orientation_kwargs" : {"theta" : math.atan(tang)- pi}}
+        
+    def moveAwayFromBall(self):
+        position_x = (self.blackboard.ally_robots[0].position_x) - (self.blackboard.balls[0].position_x)
+        position_y = (self.blackboard.ally_robots[0].position_y) - (self.blackboard.balls[0].position_y)
+        tang = position_y/position_x
+        return {"obstacles" : [],
+            "path_profile" : MovementProfiles.Normal,
+            "orientation_profile": DirectionProfiles.Aim,
+            "sync" : False,
+            "path_kwargs" : {"goal_state" : (self.blackboard.balls[0].position_x - 120,self.blackboard.balls[0].position_y)},
+            "orientation_kwargs" : {"theta" : math.atan(tang)- pi}}
+        
 
 
 class StraightMovement():
@@ -130,7 +148,7 @@ class StraightMovement():
         super().__init__()
         self.blackboard = Blackboard()
 
-    def run(self):
+    def run(self, theta):
 
         """Moviment to point when the robot is not goalkeeper"""
 
@@ -138,13 +156,23 @@ class StraightMovement():
                 "path_profile" : MovementProfiles.Straight,
                 "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
-                "orientation_kwargs" : {"theta" : 0}}
+                "path_kwargs" : {"theta" : theta},
+                "orientation_kwargs" : {"theta" : theta}}
         
         
 class GetInAngleStrategy():
-    """This class have types of movements using StraightProfile"""
+    """This class have types of movements using GetInAngleProfile"""
+
+    def run(self, p_x, p_y, theta):
+
+        return {"obstacles" : [],
+                "path_profile" : MovementProfiles.GetInAngle,
+                "orientation_profile": DirectionProfiles.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (p_x,p_y),"theta" : theta},
+                "orientation_kwargs" : {"theta" : theta}}
         
-    pass
+    
 
 class BreakStrategy():
     """"This class have the BreakProfile movement"""
