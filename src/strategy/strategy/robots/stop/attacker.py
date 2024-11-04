@@ -43,7 +43,6 @@ class GoAway(LeafNode):
         self.name = "GoAway"
         self.blackboard = Blackboard()
         self.movement = GetInAngleStrategy()
-        # self.movement = NormalMovement()
 
     def run(self):
         m, b = self.draw_line()
@@ -52,9 +51,10 @@ class GoAway(LeafNode):
 
         print(x_d)
         print(y_d)
+        print(m)
+        print(b)
 
         return TaskStatus.SUCCESS, self.movement.run(x_d, y_d, 0)
-        # return TaskStatus.SUCCESS, 
 
     def draw_line(self):
         ball_x = self.blackboard.balls[0].position_x

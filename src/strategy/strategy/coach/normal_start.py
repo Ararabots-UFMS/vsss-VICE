@@ -1,9 +1,31 @@
+import math
 from strategy.blackboard import Blackboard
 
 from strategy.behaviour import LeafNode, Sequence, Selector
 from strategy.behaviour import TaskStatus
+from strategy.robots.running.attacker import OurActionAttacker
 
-class CheckCondition(LeafNode):
+class CheckOurDistance(LeafNode):
+    def __init__(self, name):
+        super().__init__(name)
+        self.blackboard = Blackboard()
+        self.goal_position_x = 2250
+        self.goal_position_y = 0
+        self.position_x = self.blackboard.ally_robots[0].position_x
+        self.position_y = self.blackboard.ally_robots[0].position_y
+        self.radius = 500
+
+    def run(self):
+
+        distance = math.sqrt((self.position_x - self.goal_position_x) ** 2 + (self.position_y - self.goal_position_y) ** 2)
+
+        if distance <= self.radius:
+            return TaskStatus.SUCCESS, None
+        else:
+            return TaskStatus.FAILURE, None
+        
+        
+class CheckTheirCondition(LeafNode):
     def __init__(self, name):
         super().__init__(name)
         self.name = name
@@ -14,7 +36,7 @@ class CheckCondition(LeafNode):
             return TaskStatus.SUCCESS, None
         else:
             return TaskStatus.FAILURE, None
-
+        
 
 
 class IsTheirPossession(LeafNode):
@@ -22,7 +44,7 @@ class IsTheirPossession(LeafNode):
         self.name =name
         
     def run(self):
-        return TaskStatus.SUCCESS, "IS_THEIR_POSSESSION"
+        return TaskStatus.SUCCESS, None
         
 
 class IsOurPossession(LeafNode):
@@ -30,8 +52,7 @@ class IsOurPossession(LeafNode):
         self.name =name
 
     def run(self):    
-        return TaskStatus.SUCCESS, "IS_OUR_POSSESSION"
-
+        return TaskStatus.SUCCESS, OurActionAttacker("Attack!!!!")
 
 
 class CheckStart(LeafNode):
@@ -59,11 +80,11 @@ class Running(Sequence):
         
         ours_action = IsOurPossession("IsOurPossession")
 
-        ours_with_ball = CheckCondition("CheckOurCondition")
+        ours_with_ball = CheckOurDistance("CheckOurDistance")
 
         theirs_action = IsTheirPossession("IsTheirPossession")
 
-        theirs_with_ball = CheckCondition("CheckTheirCondition")
+        theirs_with_ball = CheckTheirCondition("CheckTheirCondition")
 
         ours = Sequence("OursNormalStart", [ours_with_ball, ours_action])
 
@@ -76,6 +97,7 @@ class Running(Sequence):
 
     def run(self):
         return super().run()
+
 
        
 if __name__ == "__main__":

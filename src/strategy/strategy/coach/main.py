@@ -18,9 +18,9 @@ class CoachStrategy(Selector):
         penalty = Penalty("Penalty")
         timeout = _Timeout("Timeout")
         halt = Halt("Halt")
-        # running = Running("Running")
+        running = Running("Running")
 
-        self.add_children([stop, halt, kickoff, freekick, penalty, timeout])
+        self.add_children([stop, halt, kickoff, freekick, penalty, timeout, running])
 
     def run(self):
         return super().run()

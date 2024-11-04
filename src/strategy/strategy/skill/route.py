@@ -155,7 +155,7 @@ class StraightMovement():
         return {"obstacles" : [],
                 "path_profile" : MovementProfiles.Straight,
                 "orientation_profile": DirectionProfiles.Aim,
-                "sync" : False,
+                "sync" : True,
                 "path_kwargs" : {"theta" : theta},
                 "orientation_kwargs" : {"theta" : theta}}
         

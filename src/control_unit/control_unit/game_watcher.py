@@ -1,5 +1,4 @@
 from rclpy.node import Node
-
 from system_interfaces.msg import VisionMessage, GUIMessage, RefereeMessage, VisionGeometry
 from strategy.blackboard import Blackboard
 

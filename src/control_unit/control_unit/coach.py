@@ -67,8 +67,9 @@ class Coach(Node):
         #     print(f"Robot is type: {self.behaviour_tree()}")
         #     print(profile)
 
-        for robot in list(self.robots.values()):            
-            self.robots[robot.id].behaviour_tree = strategy.run()[1]
+        for robot in list(self.robots.values()):
+            if strategy.run()[1] != None:            
+                self.robots[robot.id].behaviour_tree = strategy.run()[1]
         
         # for bt in bts:
         #     robot.tree = bt
