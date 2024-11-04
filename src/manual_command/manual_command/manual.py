@@ -16,7 +16,7 @@ class ManualCommand(Node):
         self.velocities = {"w": 0.0, "s": 0.0, "a": 0.0, "d": 0.0, "q": 0.0, "e": 0.0}
         self.max_velocity = 1.0  # Maximum velocity limit
         self.acceleration_rate = 0.1  # Rate at which velocity increases
-        self.decay+_rate = 0.01  # Rate at which velocity decays
+        self.decay_rate = 0.01  # Rate at which velocity decays
 
     def publish_command(self):
         self.get_logger().info("Publishing command")
