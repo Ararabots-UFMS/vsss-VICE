@@ -15,6 +15,7 @@ import numpy as np
 
 
 from movement.obstacles.static_obstacles import PenaltyAreaObstacles, BoundaryObstacles, WallObstacles
+from movement.obstacles.dynamic_obstacles import RobotObstacle
 
 class Robot(Node):
     def __init__(self, id: int, name: str, max_velocity = 3000, max_angular_vel = 1, max_acceleration = 1000, max_angular_acc = 0.5):
@@ -27,14 +28,20 @@ class Robot(Node):
 
         self.move = Movement(self.id, bypass_trys = 100, bypass_time = 0.5, bypass_max_radius = 2500)
 
-        self.path_trajectory = Trajectory(2)
-        self.orientation_trajectory = Trajectory(1)
+        _, (self.path_trajectory, self.orientation_trajectory) = self.move(self.get_state(), obstacles = [],
+                                                                      path_profile = MovementProfiles.Break,
+                                                                      orientation_profile = DirectionProfiles.Break,
+                                                                      sync = False,
+                                                                      path_kwargs = {},
+                                                                      orientation_kwargs = {})
 
         self.trajectory_start_time = time()
         self.acceptance_radius = 0
 
         self.controller = Controller(max_velocity, max_angular_vel)
         self.controller.set_initial_guess(self.get_state()[0])
+        self.controller.set_trajectory(self.path_trajectory, self.orientation_trajectory)
+        self.controller.reset_history()
 
         self.current_command = None
         self.status = RobotStatus.NORMAL
@@ -44,25 +51,33 @@ class Robot(Node):
 
         self.velocities = np.array([0, 0, 0])
 
+        self.test = time()
+
     def run(self):
         # command = self.behaviour()
+        point = (self.blackboard.balls[0].position_x, self.blackboard.balls[0].position_y)
+
         command = {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry),
                                   BoundaryObstacles(self.blackboard.geometry),
-                                  WallObstacles(self.blackboard.geometry)], 
+                                  WallObstacles(self.blackboard.geometry),
+                                  RobotObstacle(self.blackboard.enemy_robots[0])], 
             "path_profile" : MovementProfiles.Normal,
             "orientation_profile" : DirectionProfiles.Aim,
             "sync" : False,
-            "path_kwargs" : {"goal_state": (-0,-0)}, 
+            "path_kwargs" : {"goal_state": point}, 
             "orientation_kwargs" : {"theta": 0}}
+        
+        if command == None:
+            command = self.current_command
 
         self.update_trajectory(command)
 
     def update_trajectory(self, command):
-        status, (path_trajectory, orientation_trajectory) = self.move(self.get_state(), **command)
+        status, (path_trajectory, orientation_trajectory) = self.move(self.get_state(from_vision=False), **command)
 
         if ((status != self.status or self.check_command_change(command)) or
             (not self.check_acceptance_radius and self.get_relative_time() > self.path_trajectory.duration)):
-            if self.status != RobotStatus.COLLISION or self.get_relative_time() > self.path_trajectory.duration:
+            if not (self.status == RobotStatus.COLLISION and status == RobotStatus.BYPASS_NOT_FOUND):
                 self.path_trajectory = path_trajectory
                 self.orientation_trajectory = orientation_trajectory
                 self.trajectory_start_time = time()
@@ -119,12 +134,21 @@ class Robot(Node):
     def set_behaviour(self, behaviour_tree):
         self.behaviour = behaviour_tree
 
-    def get_state(self):
+    def get_state(self, from_vision = True):
         ''' Retuns robots position from blackboard '''
-        robot = self.blackboard.ally_robots[self.id]
+        if from_vision:
+            robot = self.blackboard.ally_robots[self.id]
 
-        return (np.array([robot.position_x, robot.position_y, robot.orientation]),
-               np.array([robot.velocity_x, robot.velocity_y, robot.velocity_orientation]))
+            return (np.array([robot.position_x, robot.position_y, robot.orientation]),
+                np.array([robot.velocity_x, robot.velocity_y, robot.velocity_orientation]))
+
+        state = self.path_trajectory.at_time(self.get_relative_time())[:2]
+        ostate = self.orientation_trajectory.at_time(self.get_relative_time())[:2]
+
+        state[0].append(ostate[0][0])
+        state[1].append(ostate[1][0])
+
+        return np.array(state)
 
     def get_relative_time(self):
         return time() - self.trajectory_start_time

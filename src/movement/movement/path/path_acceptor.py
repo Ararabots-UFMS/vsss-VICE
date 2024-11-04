@@ -21,8 +21,8 @@ class PathAcceptor:
         self,
         trajectory: Trajectory,
         obstacles: List[Obstacle],
-        control_cycle: float = 0.01,
-        max_lookahead: float = 3,
+        control_cycle: float = 0.1,
+        max_lookahead: float = 2,
     ) -> Tuple[AcceptorStatus, Obstacle]:
         duration = trajectory.duration
 
@@ -37,7 +37,7 @@ class PathAcceptor:
         while current_time < max_lookahead:
             position, velocity, acceleration = trajectory.at_time(current_time)
             for obs in obstacles:
-                if type(obs) != RobotObstacle:
+                if isinstance(obs, StaticObstacle):
                     if obs.is_colission((position[0], position[1])):
                         if current_time < 0.02:
                             return (AcceptorStatus.INSIDEAREA, obs)

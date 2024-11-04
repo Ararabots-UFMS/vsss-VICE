@@ -1,4 +1,4 @@
-from movement.obstacles.interfaces import Obstacle, StaticObstacle
+from movement.obstacles.interfaces import Obstacle, StaticObstacle, DynamicObstacle
 from movement.path.path import PathGenerator
 from movement.path.path_acceptor import PathAcceptor, AcceptorStatus
 from movement.path.path_profiles import MovementProfiles, DirectionProfiles
@@ -10,7 +10,7 @@ from ruckig import InputParameter, OutputParameter, Result, Ruckig, Trajectory, 
 from typing import List, Tuple
 from enum import Enum
 
-from math import cos, sin, pi
+from math import cos, sin, pi, atan2
 from random import uniform
 
 class RobotStatus(Enum):
@@ -57,6 +57,8 @@ class Movement:
             if isinstance(collision_obs, StaticObstacle):
                 if collision_obs.is_colission(path_trajectory.at_time(path_trajectory.duration)[0][:2]):
                     return RobotStatus.NORMAL, self.guard_area(init_state, collision_obs, path_trajectory, orientation_profile, **kwargs)
+            if isinstance(collision_obs, DynamicObstacle) and collision_obs.is_colission(0.3, path_trajectory.at_time(0.01)[0][:2]):
+                return RobotStatus.NORMAL, (path_trajectory, orientation_trajectory)
             return self.solve_collision(init_state, obstacles, path_profile, orientation_profile, **kwargs)
 
         elif status == AcceptorStatus.ACCEPTED:
@@ -74,15 +76,17 @@ class Movement:
         for _ in range(self.bypass_trys):
             random_radius1 = uniform(-self.bypass_max_radius, self.bypass_max_radius)
             random_radius2 = uniform(-self.bypass_max_radius, self.bypass_max_radius)
-            point = 0
 
             random_point = [init_state[0][0] + random_radius1, init_state[0][1] + random_radius2]
 
+            angle_to_target = atan2(((kwargs["path_kwargs"]["goal_state"])[1]) - random_point[1], ((kwargs["path_kwargs"]["goal_state"])[0]) - random_point[0])
+            random_error_angle = uniform(angle_to_target - angle_to_target * 0.2, angle_to_target + angle_to_target * 0.2)
+
             new_inp, new_oinp = self.path_generator.generate_input(
             init_state,
-            MovementProfiles.Normal,
+            MovementProfiles.GetInAngle,
             orientation_profile,
-            path_kwargs = {'goal_state':(random_point[0], random_point[1])}, 
+            path_kwargs = {'goal_state':(random_point[0], random_point[1]), "theta": random_error_angle}, 
             orientation_kwargs = kwargs['orientation_kwargs'])
 
             self.calculate_path(new_inp, new_trajectory, self.path_otg)
@@ -91,31 +95,39 @@ class Movement:
             status, collision_obs = self.acceptor.check(new_trajectory, obstacles)
 
             if status == AcceptorStatus.ACCEPTED:
-                final_path = Trajectory(2)
-                ofinal_path = Trajectory(1)
+                step = 0.2
+                for i in range(int(new_trajectory.duration / 0.2)):
+                    final_path = Trajectory(2)
+                    ofinal_path = Trajectory(1)
 
-                state = new_trajectory.at_time(self.bypass_time)[:2]
-                ostate = new_otrajectory.at_time(self.bypass_time)[:2]
+                    state = new_trajectory.at_time(i * step)[:2]
+                    ostate = new_otrajectory.at_time(i * step)[:2]
 
-                state[0].append(ostate[0][0])
-                state[1].append(ostate[1][0])
+                    state[0].append(ostate[0][0])
+                    state[1].append(ostate[1][0])
 
-                new_inp, new_oinp = self.path_generator.generate_input(
-                state,
-                path_profile,
-                orientation_profile,
-                **kwargs)
+                    new_inp, new_oinp = self.path_generator.generate_input(
+                    state,
+                    path_profile,
+                    orientation_profile,
+                    **kwargs)
 
-                self.calculate_path(new_inp, final_path, self.path_otg)
-                self.calculate_path(new_oinp, ofinal_path, self.orientation_otg)
+                    self.calculate_path(new_inp, final_path, self.path_otg)
+                    self.calculate_path(new_oinp, ofinal_path, self.orientation_otg)
 
-                status, collision_obs = self.acceptor.check(final_path, obstacles)
+                    status, collision_obs = self.acceptor.check(final_path, obstacles)
 
-                if status == AcceptorStatus.ACCEPTED:
-                    path_time = final_path.duration
-                    if path_time < best_time:
-                        point = random_point
-                        best_trajectory = RobotStatus.COLLISION, (new_trajectory, new_otrajectory)
+                    if isinstance(collision_obs, StaticObstacle) and collision_obs.is_colission(final_path.at_time(final_path.duration)[0][:2]):
+                        final_path, ofinal_path = self.guard_area(state, collision_obs, final_path, orientation_profile, **kwargs)
+
+                    status, collision_obs = self.acceptor.check(final_path, obstacles)
+
+                    if status == AcceptorStatus.ACCEPTED:
+                        path_time = new_trajectory.duration + final_path.duration
+                        if path_time < best_time:
+                            point = random_point
+                            best_trajectory = RobotStatus.COLLISION, (new_trajectory, new_otrajectory)
+                        continue
 
             if best_trajectory == None:
                 new_inp, new_oinp = self.path_generator.generate_input(
