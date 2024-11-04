@@ -39,7 +39,7 @@ class OurFreekickAction(LeafNode):
         super().__init__(name)
         
     def run(self):
-        return TaskStatus.SUCCESS, OurAttackerAction()
+        return TaskStatus.SUCCESS, OurAttackerAction("OurAttackerAction")
     
 class TheirFreeKickAction(LeafNode):
     def __init__(self, name):

@@ -69,7 +69,7 @@ class Coach(Node):
 
         for robot in list(self.robots.values()):
             if strategy.run()[1] != None:            
-                self.robots[robot.id].behaviour_tree = strategy.run()[1]
+                self.robots[robot.id].behaviour = strategy.run()[1]
         
         # for bt in bts:
         #     robot.tree = bt

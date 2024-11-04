@@ -18,10 +18,6 @@ from movement.path.path_profiles import MovementProfiles, DirectionProfiles
 from strategy.robots.running.attacker import OurActionAttacker
 from strategy.robots.stop.attacker import AttackerAction
 
-
-import sys
-#TODO remove this ugly code to access path
-sys.path.append('src/control')
 from control.mpc import Controller
 
 from ruckig import Trajectory
@@ -38,42 +34,51 @@ class Robot(Node):
         self.name = name
 
         self.blackboard = Blackboard()
-        self.name = name
-        self.id = id
-        self.behaviour_tree = OurActionAttacker("Attack!!!!")
+        self.behaviour = None
 
         self.move = Movement(self.id, bypass_trys = 100, bypass_time = 0.5, bypass_max_radius = 2500)
 
-        self.path_trajectory = Trajectory(2)
-        self.orientation_trajectory = Trajectory(1)
+        _, (self.path_trajectory, self.orientation_trajectory) = self.move(self.get_state(), obstacles = [],
+                                                                      path_profile = MovementProfiles.Break,
+                                                                      orientation_profile = DirectionProfiles.Break,
+                                                                      sync = False,
+                                                                      path_kwargs = {},
+                                                                      orientation_kwargs = {})
 
         self.trajectory_start_time = time()
         self.acceptance_radius = 0
 
         self.controller = Controller(max_velocity, max_angular_vel)
         self.controller.set_initial_guess(self.get_state()[0])
+        self.controller.set_trajectory(self.path_trajectory, self.orientation_trajectory)
+        self.controller.reset_history()
 
         self.current_command = None
         self.status = RobotStatus.NORMAL
 
-        self.running = self.create_timer(1/60, self.run)
+        self.running = self.create_timer(1/4, self.run)
         self.update_control = self.create_timer(1/16, self.update_control)
 
         self.velocities = np.array([0, 0, 0])
 
+        self.test = time()
+
     def run(self):
+        
+        if self.behaviour == None:
+            self.behaviour = AttackerAction("Stop!!!!")
+        
+        command = self.behaviour()
+        
 
-        print(self.behaviour_tree())
-        command = self.behaviour_tree()
         self.update_trajectory(command)
-
 
     def update_trajectory(self, command):
         status, (path_trajectory, orientation_trajectory) = self.move(self.get_state(), **command)
 
         if ((status != self.status or self.check_command_change(command)) or
             (not self.check_acceptance_radius and self.get_relative_time() > self.path_trajectory.duration)):
-            if self.status != RobotStatus.COLLISION or self.get_relative_time() > self.path_trajectory.duration:
+            if self.status != RobotStatus.COLLISION or self.path_trajectory.duration < self.get_relative_time():
                 self.path_trajectory = path_trajectory
                 self.orientation_trajectory = orientation_trajectory
                 self.trajectory_start_time = time()
