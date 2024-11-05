@@ -60,7 +60,6 @@ class Coach(Node):
         # self.get_logger().info(f"Running")
         # The code below just create a simple behaviour tree which is available in strategy
         strategy = CoachStrategy("CoachStrategy")
-        print(strategy.run()[1])
         # self.behaviour_tree = strategy.run()[1]
         # if self.behaviour_tree != None:
         #     profile = self.behaviour_tree()

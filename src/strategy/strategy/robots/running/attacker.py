@@ -7,25 +7,37 @@ from strategy.skill.route import BreakStrategy, GetInAngleStrategy, NormalMoveme
 """Contains all RunningActions the robot must do (in order or not) during the match"""
 
 class MoveToBall(LeafNode):
-    def __init__(self, name):
+    def __init__(self,name):
         super().__init__(name)
-        self.movement = GetInAngleStrategy()
+        self.name = "OurActionAttacker"
         self.blackboard = Blackboard()
+        self.movement = GetInAngleStrategy()
+        self.ball_x = self.blackboard.balls[0].position_x
+        self.ball_y = self.blackboard.balls[0].position_y
+        self.robot_x = self.blackboard.ally_robots[0].position_x
+        self.robot_y = self.blackboard.ally_robots[0].position_y
 
     def run(self):
-        position_x = self.blackboard.balls[0].position_x -1000
-        position_y = self.blackboard.balls[0].position_y
-        theta = math.pi
-
-        print(position_x)
-        print(position_y)
+        theta, b = self.draw_line()
 
         if self.blackboard.gui.is_field_side_left:
-            theta = 0
-            return TaskStatus.SUCCESS, self.movement.run(position_x, position_y, theta)
+            return TaskStatus.SUCCESS, self.movement.run(self.ball_x, self.ball_y, theta)
         else:
-            return TaskStatus.SUCCESS, self.movement.run(position_x+130, position_y, theta)
+            #TODO angle is with issues!!!
+            theta = theta + math.pi
+            return TaskStatus.SUCCESS, self.movement.run(self.ball_x, self.ball_y, theta)
+    
+    def draw_line(self):
         
+        if self.ball_x == self.robot_x:
+            b = self.ball_x
+            return 0, b
+        
+        m = (self.robot_y - self.ball_y)/(self.robot_x - self.ball_x)
+        b = self.ball_y - m * self.ball_x
+        theta = math.atan(m)
+
+        return theta, b    
 
 class CheckBallDistance(LeafNode):
     def __init__(self, name):
@@ -35,17 +47,17 @@ class CheckBallDistance(LeafNode):
         self.ball_position_y = self.blackboard.balls[0].position_y
         self.position_x = self.blackboard.ally_robots[0].position_x
         self.position_y = self.blackboard.ally_robots[0].position_y
-        self.radius = 700
+        self.radius = 122
 
     def run(self):
 
         distance = math.sqrt((self.position_x - self.ball_position_x) ** 2 + (self.position_y - self.ball_position_y) ** 2)
 
         if distance > self.radius:
-            print("Estou longe da bola")
+            print(f"Estou longe da bola {distance}")
             return TaskStatus.SUCCESS, None
         else:
-            print("Estou perto da bola")
+            print(f"Estou perto da bola {distance}")
             return TaskStatus.FAILURE, None
         
 
@@ -71,11 +83,14 @@ class CheckGoalDistance(LeafNode):
 class MoveToGoal(LeafNode):
     def __init__(self, name):
         super().__init__(name)
-        self.goal_position_x = 2250
+        self.blackboard = Blackboard()
         self.goal_position_y = 0
         self.movement = GetInAngleStrategy()
-        self.blackboard = Blackboard()
         self.theta = 0
+        if self.blackboard.gui.is_field_side_left:
+            self.goal_position_x = 2250
+        else:
+            self.goal_position_x = -2250
 
     def run(self):
         if self.blackboard.gui.is_field_side_left:
@@ -114,15 +129,15 @@ class OurActionAttacker(Selector):
         return super().run()[1]
 
 
-class TheirActionAttacker():
-    def __init__(self):
-        self.name = "TheirActionAttacker"
-        self.blackboard = Blackboard()
+# class TheirActionAttacker():
+#     def __init__(self):
+#         self.name = "TheirActionAttacker"
+#         self.blackboard = Blackboard()
 
-    def __call__(self, **kwds):
-        self.movement = NormalMovement()
-        return self.movement.outsideCenterCircle()
+#     def __call__(self):
+#         self.movement = NormalMovement()
+#         return self.movement.outsideCenterCircle()
         
-    def run(self):
-        self.movement = NormalMovement()
-        return self.movement.outsideCenterCircle()
+#     def run(self):
+#         self.movement = NormalMovement()
+#         return self.movement.outsideCenterCircle()

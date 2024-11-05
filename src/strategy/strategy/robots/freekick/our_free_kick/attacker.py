@@ -1,7 +1,7 @@
 import math
 from strategy.behaviour import LeafNode, Selector, Sequence, TaskStatus
 from strategy.blackboard import Blackboard
-from strategy.skill.route import GetInAngleStrategy, NormalMovement
+from strategy.skill.route import BreakStrategy, GetInAngleStrategy, NormalMovement
 
 """Contains all FreeKickActions the robot must do (in order or not) during the match"""
 
@@ -17,10 +17,15 @@ class MoveToBall(LeafNode):
         self.robot_y = self.blackboard.ally_robots[0].position_y
 
     def run(self):
-        theta, b = self.draw_line()
+        m, b = self.draw_line()
+        theta = math.atan(m)
 
-
-        return TaskStatus.SUCCESS, self.movement.run(self.ball_x, self.ball_y, theta)
+        if self.blackboard.gui.is_field_side_left:
+            return TaskStatus.SUCCESS, self.movement.run(self.ball_x, self.ball_y, theta)
+        else:
+            #TODO angle is with issues!!!
+            theta = theta + math.pi
+            return TaskStatus.SUCCESS, self.movement.run(self.ball_x, self.ball_y, theta)
     
     def draw_line(self):
         
@@ -42,7 +47,8 @@ class CheckBallDistance(LeafNode):
         self.ball_position_y = self.blackboard.balls[0].position_y
         self.position_x = self.blackboard.ally_robots[0].position_x
         self.position_y = self.blackboard.ally_robots[0].position_y
-        self.radius = 162
+        self.radius = 172
+        self.movement = BreakStrategy() 
 
     def run(self):
 
@@ -53,7 +59,7 @@ class CheckBallDistance(LeafNode):
             return TaskStatus.SUCCESS, None
         else:
             print(f"Estou perto da bola : {distance}")
-            return TaskStatus.FAILURE, None
+            return TaskStatus.FAILURE, self.movement._break()
             
 class OurAttackerAction(Sequence):
     def __init__(self, name):
@@ -74,7 +80,7 @@ class TheirAttackerAction():
         self.name = "TheirActionAttacker"
         self.blackboard = Blackboard()
 
-    def __call__(self, **kwds):
+    def __call__(self):
         self.movement = NormalMovement()
         return self.movement.moveToCenter()
         

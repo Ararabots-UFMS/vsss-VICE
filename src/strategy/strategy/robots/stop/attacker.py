@@ -29,12 +29,11 @@ class CheckDistance(LeafNode):
 
         distance = math.sqrt((position_x - ball_x) ** 2 + (position_y - ball_y) ** 2)
 
-
         if distance <= radius:
-            # print(f"distance <- radius : {distance}")
+            print(f"distance <- radius : {distance}")
             return TaskStatus.SUCCESS, None
         else:
-            # print(f"distance > radius : {distance}")
+            print(f"distance > radius : {distance}")
             return TaskStatus.FAILURE, None
         
 class GoAway(LeafNode):
@@ -46,20 +45,26 @@ class GoAway(LeafNode):
 
     def run(self):
         m, b = self.draw_line()
-        theta = math.atan(m)
+        if self.blackboard.gui.is_field_side_left:
+            theta = math.atan(m)
+        else:
+            theta = math.atan(m) + math.pi
         x_d,y_d = self.search_point(theta)
 
-        print(x_d)
-        print(y_d)
-        print(m)
-        print(b)
+        print(f"position x_d : {-x_d}")
+        print(f"position y_d : {-y_d}")
+        print(f"theta : {theta}")
 
-        return TaskStatus.SUCCESS, self.movement.run(x_d, y_d, 0)
+        return TaskStatus.SUCCESS, self.movement.run(-x_d, -y_d, theta)
 
     def draw_line(self):
         ball_x = self.blackboard.balls[0].position_x
         ball_y = self.blackboard.balls[0].position_y
-        goal_center_x = 2160
+        
+        if self.blackboard.gui.is_field_side_left:
+            goal_center_x = 2160
+        else:
+            goal_center_x = -2160
 
         if ball_x == goal_center_x:
             b = ball_x

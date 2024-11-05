@@ -27,6 +27,7 @@ class NormalMovement():
                     "path_kwargs" : {"goal_state" : (-112,0)},
                     "orientation_kwargs" : {"theta" : 0}}
         else:
+            #TODO theta is a not perfect, so I add 2.1 to adjust the error
             return {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry), WallObstacles(self.blackboard.geometry)],
                     "path_profile" : MovementProfiles.Normal,
                     "orientation_profile": DirectionProfiles.Aim,
@@ -154,16 +155,17 @@ class StraightMovement():
 
         return {"obstacles" : [],
                 "path_profile" : MovementProfiles.Straight,
-                "orientation_profile": DirectionProfiles.Aim,
+                "orientation_profile": [],
                 "sync" : True,
                 "path_kwargs" : {"theta" : theta},
-                "orientation_kwargs" : {"theta" : theta}}
+                "orientation_kwargs" : {}}
         
         
 class GetInAngleStrategy():
     """This class have types of movements using GetInAngleProfile"""
 
     def run(self, p_x, p_y, theta):
+        self.blackboard = Blackboard()
 
         return {"obstacles" : [],
                 "path_profile" : MovementProfiles.GetInAngle,

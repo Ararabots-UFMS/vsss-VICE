@@ -11,7 +11,7 @@ from system_interfaces.msg._vision_message import VisionMessage
 
 
 class RobotObstacle(DynamicObstacle):
-    def __init__(self, state: Robots, radius: float = 90, max_delta: float = 0.5, max_acc = 1, max_vel = 3):
+    def __init__(self, state: Robots, radius: float = 90, max_delta: float = 0.5, max_acc = 0.5, max_vel = 1):
         self.state = state
         self.radius = radius
 
@@ -19,7 +19,7 @@ class RobotObstacle(DynamicObstacle):
         self.max_acc = max_acc
         self.max_vel = max_vel
 
-    def is_colission(self, delta: float, ref_point: Tuple[float, float], ref_radius = 90, use_dynamic: bool = False) -> bool:
+    def is_colission(self, delta: float, ref_point: Tuple[float, float], ref_radius = 110, use_dynamic: bool = False) -> bool:
         dynamic_center, dynamic_radius = self.get_dynamic_range(delta) if use_dynamic else ([self.state.position_x, self.state.position_y], self.radius)
 
         distance = sqrt((dynamic_center[0] - ref_point[0])**2 + (dynamic_center[1] - ref_point[1])**2)

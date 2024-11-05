@@ -16,6 +16,7 @@ from movement.obstacles.static_obstacles import PenaltyAreaObstacles, BoundaryOb
 from movement.move import Movement, RobotStatus
 from movement.path.path_profiles import MovementProfiles, DirectionProfiles
 from strategy.robots.running.attacker import OurActionAttacker
+from strategy.robots.running.defensive import OurDefenseAction
 from strategy.robots.stop.attacker import AttackerAction
 
 from control.mpc import Controller
@@ -26,6 +27,7 @@ from time import time
 from math import sqrt
 import numpy as np
 
+from movement.obstacles.dynamic_obstacles import RobotObstacle
 
 class Robot(Node):
     def __init__(self, id: int, name: str, max_velocity = 3000, max_angular_vel = 1, max_acceleration = 1000, max_angular_acc = 0.5):
@@ -65,20 +67,23 @@ class Robot(Node):
 
     def run(self):
         
-        if self.behaviour == None:
-            self.behaviour = AttackerAction("Stop!!!!")
+        # if self.behaviour == None:
+        #     self.behaviour = AttackerAction("Stop!!!!")
         
+        # command = self.behaviour()
+        self.behaviour = OurDefenseAction("Defend!!!")
         command = self.behaviour()
+        print(command)
         
 
         self.update_trajectory(command)
 
     def update_trajectory(self, command):
-        status, (path_trajectory, orientation_trajectory) = self.move(self.get_state(), **command)
+        status, (path_trajectory, orientation_trajectory) = self.move(self.get_state(from_vision=False), **command)
 
         if ((status != self.status or self.check_command_change(command)) or
             (not self.check_acceptance_radius and self.get_relative_time() > self.path_trajectory.duration)):
-            if self.status != RobotStatus.COLLISION or self.path_trajectory.duration < self.get_relative_time():
+            if not (self.status == RobotStatus.COLLISION and status == RobotStatus.BYPASS_NOT_FOUND):
                 self.path_trajectory = path_trajectory
                 self.orientation_trajectory = orientation_trajectory
                 self.trajectory_start_time = time()
@@ -135,12 +140,21 @@ class Robot(Node):
     def set_behaviour(self, behaviour_tree):
         self.behaviour = behaviour_tree
 
-    def get_state(self):
+    def get_state(self, from_vision = True):
         ''' Retuns robots position from blackboard '''
-        robot = self.blackboard.ally_robots[self.id]
+        if from_vision:
+            robot = self.blackboard.ally_robots[self.id]
 
-        return (np.array([robot.position_x, robot.position_y, robot.orientation]),
-               np.array([robot.velocity_x, robot.velocity_y, robot.velocity_orientation]))
+            return (np.array([robot.position_x, robot.position_y, robot.orientation]),
+                np.array([robot.velocity_x, robot.velocity_y, robot.velocity_orientation]))
+
+        state = self.path_trajectory.at_time(self.get_relative_time())[:2]
+        ostate = self.orientation_trajectory.at_time(self.get_relative_time())[:2]
+
+        state[0].append(ostate[0][0])
+        state[1].append(ostate[1][0])
+
+        return np.array(state)
 
     def get_relative_time(self):
         return time() - self.trajectory_start_time
