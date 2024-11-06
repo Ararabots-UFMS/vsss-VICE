@@ -61,6 +61,8 @@ class APINode(Node):
         super().__init__(name)
 
         self.publisher = self.create_publisher(GUIMessage, "guiTopic", 10)
+        self.robots = {}
+        self.robot_count = 0
 
         self.executor = executor
 
@@ -77,6 +79,7 @@ class APINode(Node):
         self.is_field_side_left = True
         self.is_team_color_yellow = False
         self.is_play_pressed = False
+        self.is_simulation = False
 
     def handle_connect(self):
         self.get_logger().info("Client connected")
@@ -106,6 +109,7 @@ class APINode(Node):
     def handle_simulation(self, is_simulation):
         self.get_logger().info(f"Is sumulation? {is_simulation}")
         self.is_simulation = is_simulation
+        self.communication_node.destroy_node()
         if (is_simulation):
             self.communication_node = grSimPublisher()
         else:
@@ -184,7 +188,7 @@ class APINode(Node):
         msg.is_play_pressed = self.is_play_pressed
         for gui_robot in self.robots:
             robot = GUIRobot()
-            robot.id = gui_robot['id']
+            robot.id = int(gui_robot['id'])
             robot.name = gui_robot['name']
             robot.address = [int(i) for i in gui_robot['address'].split(',')]
             robot.kp = float(gui_robot['kp'])
@@ -193,6 +197,21 @@ class APINode(Node):
 
             msg.robots.append(robot)
         msg.robot_count = self.robot_count
+
+        count = 0
+        for gui_terminal in self.terminals:
+            if (count == 0):
+                if (self.is_simulation == False):
+                    self.referee_node.ip = int(gui_terminal['id'])
+                self.referee_node.port = int(gui_terminal['port'])
+            elif (count == 1):
+                self.vision_node.ip = int(gui_terminal['id'])
+                self.vision_node.port = int(gui_terminal['port'])
+                self.vision_node.num_cams = int(gui_terminal['num_cams'])
+            else:
+                self.communication_node.ip = int(gui_terminal['id'])
+                self.communication_node.port = int(gui_terminal['port'])
+            count = count + 1
         return msg
 
     def publish_gui_data(self) -> None:
@@ -202,6 +221,10 @@ class APINode(Node):
     def handle_config_button(self, msg):
         self.robot_count = len(msg)
         self.robots = msg
+        self.publish_gui_data()
+    
+    def handle_terminal_config_button(self, msg):
+        self.terminals = msg
         self.publish_gui_data()
 
 
@@ -222,6 +245,7 @@ def main(args=None):
          "refereeButton", node.handle_referee_button, namespace=""
     )
     gui_socket.on_event("configSaveButton", node.handle_config_button, namespace="")
+    gui_socket.on_event("terminalSaveButton", node.handle_terminal_config_button, namespace="")
     try:
         thread = thread_with_exception(gui_socket)
         thread.start()

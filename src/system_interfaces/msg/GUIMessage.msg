@@ -3,3 +3,4 @@ bool is_team_color_yellow
 bool is_play_pressed
 GUIRobot[] robots
 uint32 robot_count
+GUITerminal[] terminals
