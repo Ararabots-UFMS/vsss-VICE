@@ -16,7 +16,7 @@ from movement.obstacles.static_obstacles import PenaltyAreaObstacles, BoundaryOb
 from movement.move import Movement, RobotStatus
 from movement.path.path_profiles import MovementProfiles, DirectionProfiles
 from strategy.robots.running.attacker import OurActionAttacker
-from strategy.robots.running.defensive import OurDefenseAction
+from strategy.robots.freekick.our_free_kick.attacker import OurAttackerAction
 from strategy.robots.stop.attacker import AttackerAction
 
 from control.mpc import Controller
@@ -71,7 +71,7 @@ class Robot(Node):
         #     self.behaviour = AttackerAction("Stop!!!!")
         
         # command = self.behaviour()
-        self.behaviour = AttackerAction("stop!!!")
+        self.behaviour = OurAttackerAction("stop!!!")
         command = self.behaviour()
         print(command)
         

@@ -67,12 +67,12 @@ class GoAway(LeafNode):
         ball_y = self.blackboard.balls[0].position_y
         
         if self.blackboard.gui.is_field_side_left:
-            goal_center_x = 2160
+            goal_center_x = 2250
         else:
-            goal_center_x = -2160
+            goal_center_x = -2250
 
-        if ball_x == goal_center_x:
-            b = ball_x
+        if ball_y == 0: # Considerando y = 0 parar ir ao meio do gol. 
+            b = ball_y
             return 0, b
         
         m = -ball_y/(goal_center_x - ball_x)
