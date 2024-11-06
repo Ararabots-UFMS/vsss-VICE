@@ -71,7 +71,7 @@ class Robot(Node):
         #     self.behaviour = AttackerAction("Stop!!!!")
         
         # command = self.behaviour()
-        self.behaviour = OurDefenseAction("Defend!!!")
+        self.behaviour = AttackerAction("stop!!!")
         command = self.behaviour()
         print(command)
         
