@@ -18,9 +18,14 @@ class CheckState(LeafNode):
 class HaltAction(LeafNode):
     def __init__(self, name):
         super().__init__(name)
+        self.blackboard = Blackboard()
+        self.commands = {}
 
     def run(self):
-        return TaskStatus.SUCCESS, ActionAttacker()
+        for robot in self.blackboard.ally_robots:
+            self.commands[robot] = ActionAttacker()
+
+        return TaskStatus.SUCCESS, self.commands
     
 class Halt(Sequence):
     def __init__(self, name):

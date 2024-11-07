@@ -57,9 +57,14 @@ class IsTheirPossession(LeafNode):
 class IsOurPossession(LeafNode):
     def __init__(self, name):
         self.name =name
+        self.blackboard = Blackboard()
+        self.commands = {}
 
-    def run(self):    
-        return TaskStatus.SUCCESS, OurActionAttacker("Attack!!!!")
+    def run(self):
+        for robot in self.blackboard.ally_robots:
+            self.commands[robot] = OurActionAttacker("Attack!!!!")
+
+        return TaskStatus.SUCCESS, self.commands
 
 
 class CheckStart(LeafNode):
