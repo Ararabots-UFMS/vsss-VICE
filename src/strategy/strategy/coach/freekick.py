@@ -37,16 +37,26 @@ class CheckIfOurFreeKick(LeafNode):
 class OurFreekickAction(LeafNode):
     def __init__(self, name):
         super().__init__(name)
+        self.blackboard = Blackboard()
+        self.commands = {}
         
     def run(self):
-        return TaskStatus.SUCCESS, OurAttackerAction("OurAttackerAction")
+        for robot in self.blackboard.ally_robots:
+            self.commands[robot] = OurAttackerAction()
+
+        return TaskStatus.SUCCESS, self.commands
     
 class TheirFreeKickAction(LeafNode):
     def __init__(self, name):
         self.name = name
+        self.blackboard = Blackboard()
+        self.commands = {}
         
     def run(self):
-        return TaskStatus.SUCCESS, TheirAttackerAction()
+        for robot in self.blackboard.ally_robots:
+            self.commands[robot] = TheirAttackerAction()
+        
+        return TaskStatus.SUCCESS, self.commands
     
 class FreeKick(Sequence):
     def __init__(self, name):

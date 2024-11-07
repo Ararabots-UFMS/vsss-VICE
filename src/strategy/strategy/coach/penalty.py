@@ -37,16 +37,26 @@ class CheckIfOurPenalty(LeafNode):
 class OurPenaltyAction(LeafNode):
     def __init__(self, name):
         super().__init__(name)
-        
+        self.blackboard = Blackboard()
+        self.commands = {}
+
     def run(self):
-        return TaskStatus.SUCCESS, OurActionAttacker()
+        for robot in self.blackboard.ally_robots:
+            self.commands[robot] = OurActionAttacker()
+
+        return TaskStatus.SUCCESS, self.commands
     
 class TheirPenaltyAction(LeafNode):
     def __init__(self, name):
         self.name = name
-        
+        self.blackboard = Blackboard()
+        self.commands = {}
+
     def run(self):
-        return TaskStatus.SUCCESS, TheirActionAttacker()
+        for robot in self.blackboard.ally_robots:
+            self.commands[robot] = TheirActionAttacker()
+
+        return TaskStatus.SUCCESS, self.commands
     
 class Penalty(Sequence):
     def __init__(self, name):

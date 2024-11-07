@@ -19,9 +19,14 @@ class CheckState(LeafNode):
 class _TimeoutAction(LeafNode):
     def __init__(self, name):
         super().__init__(name)
+        self.blackboard = Blackboard()
+        self.commands = {}
 
     def run(self):
-        return TaskStatus.SUCCESS, AttackerAction()
+        for robot in self.blackboard.ally_robots:
+            self.commands[robot] = AttackerAction()
+
+        return TaskStatus.SUCCESS, self.commands
     
 class _Timeout(Sequence):
     def __init__(self, name):
