@@ -16,6 +16,15 @@ class NormalMovement():
 
     # theta is radians and position(x,y) is millimeter
 
+    def move2point(self, p_x, p_y):
+
+        return {"obstacles" : [],
+                "path_profile" : MovementProfiles.Normal,
+                "orientation_profile": DirectionProfiles.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (p_x,p_y)},
+                "orientation_kwargs" : {"theta" : 0}}
+
     def moveToCenter(self):   
 
         """Moviment to point when the robot is not goalkeeper"""

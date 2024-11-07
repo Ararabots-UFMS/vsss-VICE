@@ -36,14 +36,22 @@ class GetPoints():
         x_front = self.penalty_area.draw_line_front()  # x constant for the front line
 
         # Find intersection between left lines
-        left_intersection = self.find_intersection(m_triangle_left, n_triangle_left, m_penalty_left, n_penalty_left)
-        if left_intersection:
-            self.points_to_defend.append(left_intersection)
+        left_intersection_line2 = self.find_intersection(m_triangle_left, n_triangle_left, m_penalty_left, n_penalty_left)
+        if left_intersection_line2:
+            self.points_to_defend.append(left_intersection_line2)
+        
+        left_intersection_line1 = self.find_intersection(m_triangle_right, n_triangle_right, m_penalty_left, n_penalty_left)
+        if left_intersection_line1:
+            self.points_to_defend.append(left_intersection_line1)
         
         # Find intersection between right lines
-        right_intersection = self.find_intersection(m_triangle_right, n_triangle_right, m_penalty_right, n_penalty_right)
-        if right_intersection:
-            self.points_to_defend.append(right_intersection)
+        right_intersection_line1 = self.find_intersection(m_triangle_right, n_triangle_right, m_penalty_right, n_penalty_right)
+        if right_intersection_line1:
+            self.points_to_defend.append(right_intersection_line1)
+
+        right_intersection_line2 = self.find_intersection(m_triangle_left, n_triangle_left, m_penalty_right, n_penalty_right)
+        if right_intersection_line2:
+            self.points_to_defend.append(right_intersection_line2)
         
         # Find intersection with the front line (vertical line)
         # Front line has constant x = x_front, so we use triangle lines to find y at this x.
@@ -57,14 +65,19 @@ class GetPoints():
         if m_triangle_right != 0:  # Avoid division by zero in case of horizontal line
             y_right_front = m_triangle_right * x_front + n_triangle_right
             self.points_to_defend.append((x_front, y_right_front))
-
+        
         self.remove_invalid_points()
-
+        # print(self.points_to_defend)
 
     def remove_invalid_points(self):
         for point in self.points_to_defend[:]:
-            if abs(point[0]) > 2250 or abs(point[0]) < 1750 or abs(point[1]) > 675:
-                self.points_to_defend.remove(point) 
+            if self.blackboard.gui.is_field_side_left:
+                if point[0] < -2250 or point[0] > -1750 or abs(point[1]) > 675:
+                    self.points_to_defend.remove(point) 
+            else:
+                if point[0] > 2250 or point[0] < 1750 or abs(point[1]) > 675:
+                    self.points_to_defend.remove(point)                 
+
 
 class DefensivePlay():
     def __init__(self):
@@ -75,9 +88,36 @@ class DefensivePlay():
 
     def run(self):
         self.distance_p2r()
+        self.calculate_wanted_points()
         self.distribute_points()
         return dict(sorted(self.assignments.items()))
     
+    """Calculate the points outside the penalty area line that the robots need to go"""
+    def calculate_wanted_points(self):
+        adjusted_points = []
+
+        for point in self.points:
+            new_point = list(point)
+            
+            if self.blackboard.gui.is_field_side_left:
+                if new_point[0] == -1750:
+                    new_point[0] += 100  # Move point in front of line adding the radius of robot plus 10
+                if new_point[1] == -675:
+                    new_point[1] -= 100
+                elif new_point[1] == 675:
+                    new_point[1] += 100
+            else:
+                if new_point[0] == 1750:
+                    new_point[0] -= 100  # Move point in front of line adding the radius of robot plus 10
+                if new_point[1] == -675:
+                    new_point[1] -= 100
+                elif new_point[1] == 675:
+                    new_point[1] += 100
+
+            adjusted_points.append(tuple(new_point))
+
+        self.points = adjusted_points
+
     """Calculate the distance between a point and a robot"""
     def distance_p2r(self):
         for robot in self.blackboard.ally_robots:
@@ -91,7 +131,6 @@ class DefensivePlay():
         # Initialize a set to keep track of assigned points
         assigned_points = set()
         self.assignments = {}  # Store each robot's assigned point
-
         # Sort robots by minimum distance to points
         sorted_robots = sorted(self.distances.items(), key=lambda item: min(item[1]))
 

@@ -9,6 +9,7 @@ from strategy.coach.freekick import FreeKick
 from strategy.coach.halt import Halt
 from strategy.coach.kickoff import Kickoff
 from strategy.coach.main import CoachStrategy
+from strategy.coach.normal_start import Running
 from strategy.coach.penalty import Penalty
 from strategy.coach.stop import Stop
 from strategy.coach.timeout import _Timeout
@@ -59,11 +60,13 @@ class Coach(Node):
 
     def run(self):
         # The code below just create a simple behaviour tree which is available in strategy
-        status, strategy = CoachStrategy("CoachStrategy").run()
-        print(strategy)       
-        # for robot in list(self.robots.values()):
-        #     if strategy != None:
-        #         self.robots[robot.id].behaviour = strategy.run()[1]
+        # status, strategy = CoachStrategy("CoachStrategy").run()
+        # print(strategy)       
+        status, strategy = Running("Running").run()
+        # print(strategy)
+        for robot in list(self.robots.values()):
+            if strategy != None:
+                self.robots[robot.id].behaviour = strategy[robot.id]
 
         # strategy = DefensivePlay()
         # strategy.run()

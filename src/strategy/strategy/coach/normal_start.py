@@ -49,7 +49,7 @@ class IsTheirPossession(LeafNode):
         self.commands = {}
     def run(self):
         for robot in self.blackboard.ally_robots:
-            self.commands[robot] = [OurActionDefender("Defend!!!", self.points[robot])]
+            self.commands[robot] = OurActionDefender("Defend!!!", self.points[robot])
 
         return TaskStatus.SUCCESS, self.commands
         

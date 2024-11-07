@@ -3,17 +3,20 @@ import math
 from strategy.behaviour import LeafNode, Selector, TaskStatus
 from strategy.blackboard import Blackboard
 from strategy.coach.running.Defense_play import DefensivePlay
-from strategy.skill.route import BreakStrategy, GetInAngleStrategy
+from strategy.skill.route import BreakStrategy, GetInAngleStrategy, NormalMovement
 
 class DefensePosition(LeafNode):
-    def __init__(self, name):
+    def __init__(self, name, point):
         super().__init__(name)
         self.blackboard = Blackboard()
-        self.movement = GetInAngleStrategy()
+        self.movement = NormalMovement()
+        self.point = point
         
 
     def run(self):
-        pass
+
+        print(f"indo para o ponto : {self.point}")
+        return TaskStatus.SUCCESS, self.movement.move2point(self.point[0], self.point[1])
     
 
 class CheckBallDistance(LeafNode):
@@ -33,10 +36,10 @@ class CheckBallDistance(LeafNode):
 
         if distance > self.radius:
             print(f"Estou longe da bola : {distance}")
-            return TaskStatus.SUCCESS, None
+            return TaskStatus.FAILURE, None
         else:
             print(f"Estou perto da bola {distance}")
-            return TaskStatus.FAILURE, self.movement._break()
+            return TaskStatus.SUCCESS, self.movement._break()
         
 
 
@@ -44,9 +47,10 @@ class OurActionDefender(Selector):
     def __init__(self, name, points):
         super().__init__(name, [])
         self.blackboard = Blackboard()
+        self.point = points
         is_near_ball = CheckBallDistance("CheckBallDistance")
-        defensive_mode = DefensePosition("DefensivePosition")
-        self.add_children([is_near_ball, defensive_mode])
+        defensive_mode = DefensePosition("DefensivePosition", self.point)
+        self.add_children([defensive_mode])
     
     def __call__(self):
         return super().run()[1]

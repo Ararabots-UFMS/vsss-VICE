@@ -66,13 +66,12 @@ class Robot(Node):
 
     def run(self):
         
-        # if self.behaviour == None:
-        #     self.behaviour = AttackerAction("Stop!!!!")
+        if self.behaviour == None:
+            self.behaviour =  ActionAttacker()
         
-        # command = self.behaviour()
-        self.behaviour = ActionAttacker()
         command = self.behaviour()
-        # print(command)
+       
+        print(command)
         
 
         self.update_trajectory(command)
