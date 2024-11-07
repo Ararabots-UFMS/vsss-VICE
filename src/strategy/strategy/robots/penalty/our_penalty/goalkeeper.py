@@ -3,14 +3,6 @@ from strategy.behaviour import LeafNode, Selector, TaskStatus
 from strategy.blackboard import Blackboard
 from strategy.skill.route import BreakStrategy, GetInAngleStrategy
 
-class DefensiveTriangle():
-    def __init__(self):
-        self.blackboard = Blackboard()
-        self.point_1 = [-1750, 40]
-        self.point_2 = [-1750, -40]
-        self.point_3 = [self.blackboard.balls[0].position_x,self.blackboard.balls[0].position_y]
-
-
 class DefensePosition(LeafNode):
     def __init__(self, name):
         super().__init__(name)
