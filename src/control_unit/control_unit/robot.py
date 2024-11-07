@@ -16,7 +16,6 @@ from movement.obstacles.static_obstacles import PenaltyAreaObstacles, BoundaryOb
 from movement.move import Movement, RobotStatus
 from movement.path.path_profiles import MovementProfiles, DirectionProfiles
 from strategy.robots.running.attacker import OurActionAttacker
-from strategy.robots.running.defensive import OurDefenseAction
 from strategy.robots.halt.attacker import ActionAttacker
 
 from control.mpc import Controller

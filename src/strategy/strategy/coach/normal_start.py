@@ -3,7 +3,9 @@ from strategy.blackboard import Blackboard
 
 from strategy.behaviour import LeafNode, Sequence, Selector
 from strategy.behaviour import TaskStatus
+from strategy.coach.running.Defense_play import DefensivePlay
 from strategy.robots.running.attacker import OurActionAttacker
+from strategy.robots.running.defensive import OurActionDefender
 
 class CheckOurDistance(LeafNode):
     def __init__(self, name):
@@ -42,9 +44,14 @@ class CheckTheirCondition(LeafNode):
 class IsTheirPossession(LeafNode):
     def __init__(self, name):
         self.name =name
-        
+        self.blackboard = Blackboard()
+        self.points = DefensivePlay().run()
+        self.commands = {}
     def run(self):
-        return TaskStatus.SUCCESS, None
+        for robot in self.blackboard.ally_robots:
+            self.commands[robot] = [OurActionDefender("Defend!!!", self.points[robot])]
+
+        return TaskStatus.SUCCESS, self.commands
         
 
 class IsOurPossession(LeafNode):

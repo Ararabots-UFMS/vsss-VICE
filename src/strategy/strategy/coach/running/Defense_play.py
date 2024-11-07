@@ -76,8 +76,7 @@ class DefensivePlay():
     def run(self):
         self.distance_p2r()
         self.distribute_points()
-        print(self.assignments)
-        return self.assignments
+        return dict(sorted(self.assignments.items()))
     
     """Calculate the distance between a point and a robot"""
     def distance_p2r(self):

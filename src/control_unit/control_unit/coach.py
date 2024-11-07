@@ -59,14 +59,14 @@ class Coach(Node):
 
     def run(self):
         # The code below just create a simple behaviour tree which is available in strategy
-        # strategy = CoachStrategy("CoachStrategy")
-       
+        status, strategy = CoachStrategy("CoachStrategy").run()
+        print(strategy)       
         # for robot in list(self.robots.values()):
-        #     if strategy.run()[1] != None:            
+        #     if strategy != None:
         #         self.robots[robot.id].behaviour = strategy.run()[1]
 
-        strategy = DefensivePlay()
-        strategy.run()
+        # strategy = DefensivePlay()
+        # strategy.run()
         
 
 
