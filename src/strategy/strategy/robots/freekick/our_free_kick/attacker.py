@@ -11,33 +11,64 @@ class MoveToBall(LeafNode):
         self.name = "OurActionAttacker"
         self.blackboard = Blackboard()
         self.movement = GetInAngleStrategy()
+        self.radius = 200
+
+        if self.blackboard.gui.is_field_side_left: 
+
+            for line in self.blackboard.geometry.field_lines:
+                if line.name == 'RightGoalLine':
+                    self.goal_field = line
+        else:
+
+            for line in self.blackboard.geometry.field_lines:
+                if line.name == 'LeftGoalLine':
+                    self.goal_field = line
+
+
         self.ball_x = self.blackboard.balls[0].position_x
         self.ball_y = self.blackboard.balls[0].position_y
-        self.robot_x = self.blackboard.ally_robots[0].position_x
-        self.robot_y = self.blackboard.ally_robots[0].position_y
 
     def run(self):
         m, b = self.draw_line()
-        theta = math.atan(m)
 
         if self.blackboard.gui.is_field_side_left:
-            return TaskStatus.SUCCESS, self.movement.run(self.ball_x, self.ball_y, theta)
+            theta = math.atan(m)
         else:
-            #TODO angle is with issues!!!
-            theta = theta + math.pi
-            return TaskStatus.SUCCESS, self.movement.run(self.ball_x, self.ball_y, theta)
+            theta = math.atan(m) + math.pi 
+
+        x_d, y_d = self.search_point(theta) 
+
+        theta = theta if self.blackboard.gui.is_field_side_left else theta
+
+        print(f"position x_d : {-x_d}")
+        print(f"position y_d : {-y_d}")
+        print(f"theta : {theta}")
+
+
+        return TaskStatus.SUCCESS, self.movement.run(-x_d, -y_d, theta)
     
     def draw_line(self):
-        
 
-        if self.ball_x == self.robot_x:
-            b = self.ball_x
+        if self.ball_y == 0: # Considerando y = 0 parar ir ao meio do gol. 
+            b = self.ball_y
             return 0, b
-        
-        m = (self.robot_y - self.ball_y)/(self.robot_x - self.ball_x)
+
+        m = (-self.ball_y)/(self.goal_field.x1 - self.ball_x)
         b = self.ball_y - m * self.ball_x
 
         return m, b
+    
+    def search_point(self, theta):
+        ball_x = self.blackboard.balls[0].position_x
+        ball_y = self.blackboard.balls[0].position_y
+
+        sin_theta = self.radius * math.sin(theta)
+        cos_theta = self.radius * math.cos(theta)
+
+        y_d = sin_theta + -1 * ball_y
+        x_d = cos_theta + -1 * ball_x
+
+        return x_d, y_d
     
 class CheckBallDistance(LeafNode):
     def __init__(self, name):
@@ -47,7 +78,7 @@ class CheckBallDistance(LeafNode):
         self.ball_position_y = self.blackboard.balls[0].position_y
         self.position_x = self.blackboard.ally_robots[0].position_x
         self.position_y = self.blackboard.ally_robots[0].position_y
-        self.radius = 172
+        self.radius = 300 # 90 de raio do robo + 22 da bola + 50 de folga   
         self.movement = BreakStrategy() 
 
     def run(self):

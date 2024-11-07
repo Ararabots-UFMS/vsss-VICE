@@ -45,32 +45,37 @@ class GoAway(LeafNode):
 
     def run(self):
         m, b = self.draw_line()
+
         if self.blackboard.gui.is_field_side_left:
             theta = math.atan(m)
         else:
-            theta = math.atan(m) + math.pi
-        x_d,y_d = self.search_point(theta)
+            theta = math.atan(m) + math.pi 
 
-        # print(f"position x_d : {-x_d}")
-        # print(f"position y_d : {-y_d}")
-        # print(f"theta : {theta}")
+        x_d, y_d = self.search_point(theta) 
+
+        theta = theta if self.blackboard.gui.is_field_side_left else theta +  math.pi / 2
+
+        print(f"position x_d : {x_d}")
+        print(f"position y_d : {y_d}")
+        print(f"theta : {theta}")
 
         return TaskStatus.SUCCESS, self.movement.run(-x_d, -y_d, theta)
+
 
     def draw_line(self):
         ball_x = self.blackboard.balls[0].position_x
         ball_y = self.blackboard.balls[0].position_y
         
         if self.blackboard.gui.is_field_side_left:
-            goal_center_x = 2160
+            goal_center_x = 2250
         else:
-            goal_center_x = -2160
+            goal_center_x = -2250
 
-        if ball_x == goal_center_x:
-            b = ball_x
+        if ball_y == 0: # Considerando y = 0 parar ir ao meio do gol. 
+            b = ball_y
             return 0, b
         
-        m = -ball_y/(goal_center_x-ball_x)
+        m = -ball_y/(goal_center_x - ball_x)
         b = ball_y - m * ball_x
 
         return m, b
@@ -79,8 +84,12 @@ class GoAway(LeafNode):
         distance_needed = 612
         ball_x = self.blackboard.balls[0].position_x
         ball_y = self.blackboard.balls[0].position_y
-        y_d = distance_needed * math.sin(theta) + ball_y
-        x_d = distance_needed * math.cos(theta) + ball_x
+
+        sin_theta = distance_needed * math.sin(theta)
+        cos_theta = distance_needed * math.cos(theta)
+
+        y_d = sin_theta + -1 * ball_y
+        x_d = cos_theta + -1 * ball_x
 
         return x_d, y_d
 
