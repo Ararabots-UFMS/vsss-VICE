@@ -8,29 +8,50 @@ class DefensePosition(LeafNode):
         super().__init__(name)
         self.blackboard = Blackboard()
         self.movement = GetInAngleStrategy()
-        self.ball_x = self.blackboard.balls[0].position_x
-        self.ball_y = self.blackboard.balls[0].position_y
+        self.ball = self.blackboard.balls[0]
         self.minimal_distance = 300
+        self.padding = 150
         self.goal_y = None
+
+        # Goal bounds. Do not have on blackboard yet 
+        self.goal_bound_y1 = 350 #  Top limit of the goal
+        self.goal_bound_y2 = -350 # Bottom limit of the goal
+
+
         if self.blackboard.gui.is_field_side_left:
-            self.goal_x = -2250
+            for line in self.blackboard.geometry.field_lines:
+                if line.name == 'LeftGoalLine':
+                    self.goal_x = line.x1 + self.padding
+                elif line.name == 'LeftPenaltyStretch':
+                    self.penalty_stretch_x = line.x1                     
+
         else:
-            self.goal_x = 2250
-        
+            for line in self.blackboard.geometry.field_lines:
+                if line.name == 'RightGoalLine':
+                    self.goal_x = line.x - self.padding
+                elif line.name == 'RightPenaltyStretch':
+                    self.penalty_stretch_x = line.x1
 
     def run(self):
-        distance, id = self.closest_enemy_with_ball()
-        m, n = self.draw_line(id)
-        self.find_point_in_goal(m, n)
+        
+        enemy_distance, enemy_id = self.closest_enemy_with_ball()
+
+        m, b = self.draw_line(enemy_id)
+        self.find_point_in_goal(m, b)
         theta = math.atan(m)
 
-        # return TaskStatus.SUCCESS, self.movement.run(self.goal_x, self.goal_y, theta)
-        #TODO: Maybe we need to change this movement to something more simple
+        self.goal_y = max(self.goal_bound_y2, min(self.goal_y, self.goal_bound_y1))
 
-        if distance > self.minimal_distance:
+        distance_ball_goal = self.calculate_distance_to_ball_goal()
+
+        if enemy_distance > self.minimal_distance and distance_ball_goal > self.minimal_distance:
             return TaskStatus.SUCCESS, self.movement.run(self.goal_x, self.goal_y, theta)
         else:
-            return TaskStatus.SUCCESS, self.movement.run(self.ball_x, self.ball_y, theta)
+            return TaskStatus.SUCCESS, self.movement.run(self.ball.position_x, self.ball.position_y, theta)
+
+    def calculate_distance_to_ball_goal(self):
+        return math.sqrt((self.ball.position_x - self.penalty_stretch_x) ** 2 + (self.ball.position_y) ** 2)
+
 
     def find_point_in_goal(self, m, n):
         self.goal_y = m*self.goal_x + n
@@ -40,28 +61,28 @@ class DefensePosition(LeafNode):
         self.robot_x = self.blackboard.enemy_robots[id].position_x
         self.robot_y = self.blackboard.enemy_robots[id].position_y
         
-        if self.ball_x == self.robot_x:
-            n = self.ball_x
+        if self.ball.position_x == self.robot_x:
+            n = self.ball.position_x
             return 0, n
         
-        m = (self.robot_y - self.ball_y)/(self.robot_x - self.ball_x)
-        n = self.ball_y - m * self.ball_x
+        m = (self.robot_y - self.ball.position_y)/(self.robot_x - self.ball.position_x)
+        b = self.ball.position_y - m * self.ball.position_x
 
-        return m, n    
+        return m, b    
     
     def closest_enemy_with_ball(self):
         distance = +math.inf
         enemy_id = None
         enemy_robots = self.blackboard.enemy_robots
         for enemy in list(self.blackboard.enemy_robots):
-            enemy_distance = math.sqrt((enemy_robots[enemy].position_x - self.ball_x) ** 2 + (enemy_robots[enemy].position_x - self.ball_y) ** 2)
+            enemy_distance = math.sqrt((enemy_robots[enemy].position_x - self.ball.position_x) ** 2 + (enemy_robots[enemy].position_y - self.ball.position_y) ** 2)
             if enemy_distance <= distance:
                 distance = enemy_distance
                 enemy_id = enemy
         
         return distance, enemy_id
     
-
+# TODO : Check if the robot is near the ball
 class CheckBallDistance(LeafNode):
     def __init__(self, name):
         super().__init__(name)
@@ -69,13 +90,19 @@ class CheckBallDistance(LeafNode):
         self.movement = BreakStrategy()
         self.ball_position_x = self.blackboard.balls[0].position_x
         self.ball_position_y = self.blackboard.balls[0].position_y
-        self.position_x = self.blackboard.ally_robots[0].position_x
-        self.position_y = self.blackboard.ally_robots[0].position_y
+
+        if self.blackboard.gui._is_team_color_yellow:
+            id_goalkeeper = self.blackboard.referee.teams[1].goalkeeper
+            self.goalkeeper = self.blackboard.ally_robots[id_goalkeeper]
+        else:
+            id_goalkeeper = self.blackboard.referee.teams[0].goalkeeper
+            self.goalkeeper = self.blackboard.ally_robots[id_goalkeeper]
+
         self.radius = 142
 
     def run(self):
 
-        distance = math.sqrt((self.position_x - self.ball_position_x) ** 2 + (self.position_y - self.ball_position_y) ** 2)
+        distance = math.sqrt((self.goalkeeper.position_x - self.ball_position_x) ** 2 + (self.goalkeeper.position_y - self.ball_position_y) ** 2)
 
         if distance > self.radius:
             print(f"Estou longe da bola : {distance}")
