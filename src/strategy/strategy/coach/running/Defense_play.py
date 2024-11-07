@@ -101,18 +101,18 @@ class DefensivePlay():
             
             if self.blackboard.gui.is_field_side_left:
                 if new_point[0] == -1750:
-                    new_point[0] += 100  # Move point in front of line adding the radius of robot plus 10
+                    new_point[0] += 110  # Move point in front of line adding the radius of robot plus 10
                 if new_point[1] == -675:
-                    new_point[1] -= 100
+                    new_point[1] -= 110
                 elif new_point[1] == 675:
-                    new_point[1] += 100
+                    new_point[1] += 110
             else:
                 if new_point[0] == 1750:
-                    new_point[0] -= 100  # Move point in front of line adding the radius of robot plus 10
+                    new_point[0] -= 110  # Move point in front of line adding the radius of robot plus 10
                 if new_point[1] == -675:
-                    new_point[1] -= 100
+                    new_point[1] -= 110
                 elif new_point[1] == 675:
-                    new_point[1] += 100
+                    new_point[1] += 110
 
             adjusted_points.append(tuple(new_point))
 
@@ -132,7 +132,10 @@ class DefensivePlay():
         assigned_points = set()
         self.assignments = {}  # Store each robot's assigned point
         # Sort robots by minimum distance to points
-        sorted_robots = sorted(self.distances.items(), key=lambda item: min(item[1]))
+        sorted_robots = sorted(
+            ((robot, distances) for robot, distances in self.distances.items() if distances),
+            key=lambda item: min(item[1]))
+
 
         # Assign each robot the closest available point
         for robot, distances in sorted_robots:

@@ -6,6 +6,7 @@ from strategy.behaviour import TaskStatus
 from strategy.coach.running.Defense_play import DefensivePlay
 from strategy.robots.running.attacker import OurActionAttacker
 from strategy.robots.running.defensive import OurActionDefender
+from strategy.robots.halt.defender import ActionDefender
 
 class CheckOurDistance(LeafNode):
     def __init__(self, name):
@@ -49,7 +50,11 @@ class IsTheirPossession(LeafNode):
         self.commands = {}
     def run(self):
         for robot in self.blackboard.ally_robots:
-            self.commands[robot] = OurActionDefender("Defend!!!", self.points[robot])
+            if robot in self.points and self.points[robot] is not None:
+                self.commands[robot] = OurActionDefender("Defend!!!", self.points[robot])
+            else:
+                self.commands[robot] = ActionDefender()
+
 
         return TaskStatus.SUCCESS, self.commands
         
