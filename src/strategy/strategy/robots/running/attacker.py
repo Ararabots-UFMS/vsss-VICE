@@ -14,8 +14,8 @@ class MoveToBall(LeafNode):
         self.movement = GetInAngleStrategy()
         self.ball_x = self.blackboard.balls[0].position_x
         self.ball_y = self.blackboard.balls[0].position_y
-        self.robot_x = self.blackboard.ally_robots[0].position_x
-        self.robot_y = self.blackboard.ally_robots[0].position_y
+        self.goal_x = 2250
+        self.goal_y = 0
 
     def run(self):
         theta, b = self.draw_line()
@@ -29,14 +29,14 @@ class MoveToBall(LeafNode):
     
     def draw_line(self):
         
-        if self.ball_x == self.robot_x:
+        if self.ball_x == self.goal_x:
             b = self.ball_x
             return 0, b
         
-        m = (self.robot_y - self.ball_y)/(self.robot_x - self.ball_x)
+        m = (self.goal_y - self.ball_y)/(self.goal_x - self.ball_x)
         b = self.ball_y - m * self.ball_x
         theta = math.atan(m)
-
+        print(theta)
         return theta, b    
 
 class CheckBallDistance(LeafNode):
@@ -47,7 +47,7 @@ class CheckBallDistance(LeafNode):
         self.ball_position_y = self.blackboard.balls[0].position_y
         self.position_x = self.blackboard.ally_robots[0].position_x
         self.position_y = self.blackboard.ally_robots[0].position_y
-        self.radius = 122
+        self.radius = 112
 
     def run(self):
 

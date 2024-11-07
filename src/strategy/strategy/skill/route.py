@@ -164,8 +164,10 @@ class StraightMovement():
 class GetInAngleStrategy():
     """This class have types of movements using GetInAngleProfile"""
 
+
     def run(self, p_x, p_y, theta):
         self.blackboard = Blackboard()
+    # Theta is use in path_profile and angle is use in orientation_profile
 
         return {"obstacles" : [],
                 "path_profile" : MovementProfiles.GetInAngle,

@@ -12,6 +12,7 @@ from strategy.coach.main import CoachStrategy
 from strategy.coach.penalty import Penalty
 from strategy.coach.stop import Stop
 from strategy.coach.timeout import _Timeout
+from strategy.coach.running.Defense_play import DefensivePlay, GetPoints
 
 
 
@@ -57,22 +58,16 @@ class Coach(Node):
                 self.robots.pop(robot.id)
 
     def run(self):
-        # self.get_logger().info(f"Running")
         # The code below just create a simple behaviour tree which is available in strategy
-        strategy = CoachStrategy("CoachStrategy")
-        # self.behaviour_tree = strategy.run()[1]
-        # if self.behaviour_tree != None:
-        #     profile = self.behaviour_tree()
-        #     print(f"Robot is type: {self.behaviour_tree()}")
-        #     print(profile)
+        # strategy = CoachStrategy("CoachStrategy")
+       
+        # for robot in list(self.robots.values()):
+        #     if strategy.run()[1] != None:            
+        #         self.robots[robot.id].behaviour = strategy.run()[1]
 
-        for robot in list(self.robots.values()):
-            if strategy.run()[1] != None:            
-                self.robots[robot.id].behaviour = strategy.run()[1]
+        strategy = DefensivePlay()
+        strategy.run()
         
-        # for bt in bts:
-        #     robot.tree = bt
-        # self.behaviour_tree.run(self.blackboard)
 
 
 def main(args=None):

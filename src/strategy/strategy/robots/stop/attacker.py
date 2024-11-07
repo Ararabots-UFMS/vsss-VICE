@@ -30,10 +30,10 @@ class CheckDistance(LeafNode):
         distance = math.sqrt((position_x - ball_x) ** 2 + (position_y - ball_y) ** 2)
 
         if distance <= radius:
-            print(f"distance <- radius : {distance}")
+            # print(f"distance <- radius : {distance}")
             return TaskStatus.SUCCESS, None
         else:
-            print(f"distance > radius : {distance}")
+            # print(f"distance > radius : {distance}")
             return TaskStatus.FAILURE, None
         
 class GoAway(LeafNode):
@@ -51,9 +51,9 @@ class GoAway(LeafNode):
             theta = math.atan(m) + math.pi
         x_d,y_d = self.search_point(theta)
 
-        print(f"position x_d : {-x_d}")
-        print(f"position y_d : {-y_d}")
-        print(f"theta : {theta}")
+        # print(f"position x_d : {-x_d}")
+        # print(f"position y_d : {-y_d}")
+        # print(f"theta : {theta}")
 
         return TaskStatus.SUCCESS, self.movement.run(-x_d, -y_d, theta)
 

@@ -17,7 +17,7 @@ from movement.move import Movement, RobotStatus
 from movement.path.path_profiles import MovementProfiles, DirectionProfiles
 from strategy.robots.running.attacker import OurActionAttacker
 from strategy.robots.running.defensive import OurDefenseAction
-from strategy.robots.stop.attacker import AttackerAction
+from strategy.robots.halt.attacker import ActionAttacker
 
 from control.mpc import Controller
 
@@ -71,9 +71,9 @@ class Robot(Node):
         #     self.behaviour = AttackerAction("Stop!!!!")
         
         # command = self.behaviour()
-        self.behaviour = OurDefenseAction("Defend!!!")
+        self.behaviour = ActionAttacker()
         command = self.behaviour()
-        print(command)
+        # print(command)
         
 
         self.update_trajectory(command)
