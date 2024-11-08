@@ -28,7 +28,7 @@ class DefensePosition(LeafNode):
         else:
             for line in self.blackboard.geometry.field_lines:
                 if line.name == 'RightGoalLine':
-                    self.goal_x = line.x - self.padding
+                    self.goal_x = line.x1 - self.padding
                 elif line.name == 'RightPenaltyStretch':
                     self.penalty_stretch_x = line.x1
 
@@ -36,18 +36,21 @@ class DefensePosition(LeafNode):
         
         enemy_distance, enemy_id = self.closest_enemy_with_ball()
 
-        m, b = self.draw_line(enemy_id)
+        m, b, theta = self.draw_line(enemy_id)
         self.find_point_in_goal(m, b)
-        theta = math.atan(m)
-
-        self.goal_y = max(self.goal_bound_y2, min(self.goal_y, self.goal_bound_y1))
 
         distance_ball_goal = self.calculate_distance_to_ball_goal()
 
-        if enemy_distance > self.minimal_distance and distance_ball_goal > self.minimal_distance:
-            return TaskStatus.SUCCESS, self.movement.run(self.goal_x, self.goal_y, theta)
-        else:
+        print(f"Distance to ball goal : {distance_ball_goal}")
+        print(f"Distance to enemy : {enemy_distance}")
+
+        print(f"Goal x : {self.goal_x}")
+        print(f"Goal y : {self.goal_y}")
+
+        if enemy_distance < self.minimal_distance and distance_ball_goal < self.minimal_distance:
             return TaskStatus.SUCCESS, self.movement.run(self.ball.position_x, self.ball.position_y, theta)
+        else:
+            return TaskStatus.SUCCESS, self.movement.run(self.goal_x, self.goal_y, theta)
 
     def calculate_distance_to_ball_goal(self):
         return math.sqrt((self.ball.position_x - self.penalty_stretch_x) ** 2 + (self.ball.position_y) ** 2)
@@ -55,6 +58,11 @@ class DefensePosition(LeafNode):
 
     def find_point_in_goal(self, m, n):
         self.goal_y = m*self.goal_x + n
+
+        if self.goal_y > self.goal_bound_y1:
+            self.goal_y = self.goal_bound_y1
+        elif self.goal_y < self.goal_bound_y2:
+            self.goal_y = self.goal_bound_y2
         
 
     def draw_line(self, id):
@@ -63,12 +71,14 @@ class DefensePosition(LeafNode):
         
         if self.ball.position_x == self.robot_x:
             n = self.ball.position_x
-            return 0, n
-        
-        m = (self.robot_y - self.ball.position_y)/(self.robot_x - self.ball.position_x)
+            return 0, n 
+
+        m = (self.robot_y - self.ball.position_y) / (self.robot_x - self.ball.position_x)
         b = self.ball.position_y - m * self.ball.position_x
 
-        return m, b    
+        theta = math.atan2(self.robot_y - self.ball.position_y, self.robot_x - self.ball.position_x)
+
+        return m, b, theta    
     
     def closest_enemy_with_ball(self):
         distance = +math.inf

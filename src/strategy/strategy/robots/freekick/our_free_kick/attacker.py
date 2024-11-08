@@ -38,8 +38,6 @@ class MoveToBall(LeafNode):
 
         x_d, y_d = self.search_point(theta) 
 
-        theta = theta if self.blackboard.gui.is_field_side_left else theta
-
         print(f"position x_d : {-x_d}")
         print(f"position y_d : {-y_d}")
         print(f"theta : {theta}")
