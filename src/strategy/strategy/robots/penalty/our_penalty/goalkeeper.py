@@ -1,13 +1,13 @@
 import math
 from strategy.behaviour import LeafNode, Selector, TaskStatus
 from strategy.blackboard import Blackboard
-from strategy.skill.route import BreakStrategy, GetInAngleStrategy
+from strategy.skill.route import BreakStrategy, GetInAngleStrategy, NormalMovement
 
 class DefensePosition(LeafNode):
     def __init__(self, name):
         super().__init__(name)
         self.blackboard = Blackboard()
-        self.movement = GetInAngleStrategy()
+        self.movement = NormalMovement()
         self.ball = self.blackboard.balls[0]
         self.minimal_distance = 300
         self.padding = 150
@@ -46,11 +46,12 @@ class DefensePosition(LeafNode):
 
         print(f"Goal x : {self.goal_x}")
         print(f"Goal y : {self.goal_y}")
+        print("theta : ", theta)
 
         if enemy_distance < self.minimal_distance and distance_ball_goal < self.minimal_distance:
-            return TaskStatus.SUCCESS, self.movement.run(self.ball.position_x, self.ball.position_y, theta)
+            return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(self.ball.position_x, self.ball.position_y, theta)
         else:
-            return TaskStatus.SUCCESS, self.movement.run(self.goal_x, self.goal_y, theta)
+            return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(self.goal_x, self.goal_y, theta)
 
     def calculate_distance_to_ball_goal(self):
         return math.sqrt((self.ball.position_x - self.penalty_stretch_x) ** 2 + (self.ball.position_y) ** 2)
@@ -78,7 +79,7 @@ class DefensePosition(LeafNode):
 
         theta = math.atan2(self.robot_y - self.ball.position_y, self.robot_x - self.ball.position_x)
 
-        return m, b, theta    
+        return m, b, theta 
     
     def closest_enemy_with_ball(self):
         distance = +math.inf

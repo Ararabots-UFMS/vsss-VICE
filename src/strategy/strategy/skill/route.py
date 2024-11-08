@@ -16,6 +16,16 @@ class NormalMovement():
 
     # theta is radians and position(x,y) is millimeter
 
+
+    def move_to_position_with_orientation(self, p_x, p_y, theta):
+        return {"obstacles" : [],
+                "path_profile" : MovementProfiles.Normal,
+                "orientation_profile": DirectionProfiles.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (p_x,p_y)},
+                "orientation_kwargs" : {"theta" : theta}}
+
+
     def move2point(self, p_x, p_y):
 
         return {"obstacles" : [],
