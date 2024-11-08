@@ -18,6 +18,7 @@ from movement.path.path_profiles import MovementProfiles, DirectionProfiles
 from strategy.robots.running.attacker import OurActionAttacker
 from strategy.robots.halt.attacker import ActionAttacker
 from strategy.robots.penalty.our_penalty.goalkeeper import OurGoalkeeperAction
+from strategy.robots.freekick.our_free_kick.attacker import OurAttackerAction
 
 from control.mpc import Controller
 
@@ -67,12 +68,12 @@ class Robot(Node):
 
     def run(self):
         
-        if self.behaviour == None:
-            self.behaviour =  ActionAttacker()
+        # if self.behaviour == None:
+        self.behaviour =  OurActionAttacker("name")
         
         command = self.behaviour()
        
-        print(command)
+        self.get_logger().info(f"Real: {self.get_state(from_vision=True)[0][2]} // Expected: {self.orientation_trajectory.at_time(self.get_relative_time())[0]}")
         
 
         self.update_trajectory(command)

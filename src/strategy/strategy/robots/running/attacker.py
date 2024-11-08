@@ -12,32 +12,59 @@ class MoveToBall(LeafNode):
         self.name = "OurActionAttacker"
         self.blackboard = Blackboard()
         self.movement = GetInAngleStrategy()
+        self.radius = 112 # raio do robo + raio da bola
+
+        if self.blackboard.gui.is_field_side_left: 
+            for line in self.blackboard.geometry.field_lines:
+                if line.name == 'RightGoalLine':
+                    self.goal_field = line
+        else:
+            for line in self.blackboard.geometry.field_lines:
+                if line.name == 'LeftGoalLine':
+                    self.goal_field = line
+
         self.ball_x = self.blackboard.balls[0].position_x
         self.ball_y = self.blackboard.balls[0].position_y
-        self.goal_x = 2250
-        self.goal_y = 0
 
     def run(self):
-        theta, b = self.draw_line()
+        m, b = self.draw_line()
 
+        #Huge mamaco, refactor this
         if self.blackboard.gui.is_field_side_left:
-            return TaskStatus.SUCCESS, self.movement.run(self.ball_x, self.ball_y, theta)
+            theta = math.atan(m)
         else:
-            #TODO angle is with issues!!!
-            theta = theta + math.pi
-            return TaskStatus.SUCCESS, self.movement.run(self.ball_x, self.ball_y, theta)
+            theta = math.atan(m) + math.pi 
+
+        x_d, y_d = self.search_point(theta) 
+
+        print(f"position x_d : {-x_d}")
+        print(f"position y_d : {-y_d}")
+        print(f"theta : {theta}")
+
+        return TaskStatus.SUCCESS, self.movement.run(-x_d, -y_d, theta)
     
     def draw_line(self):
-        
-        if self.ball_x == self.goal_x:
-            b = self.ball_x
+
+        if self.ball_y == 0: # Considerando y = 0 parar ir ao meio do gol. 
+            b = self.ball_y
             return 0, b
-        
-        m = (self.goal_y - self.ball_y)/(self.goal_x - self.ball_x)
+
+        m = (-self.ball_y)/(self.goal_field.x1 - self.ball_x)
         b = self.ball_y - m * self.ball_x
-        theta = math.atan(m)
-        print(theta)
-        return theta, b    
+
+        return m, b
+    
+    def search_point(self, theta):
+        ball_x = self.blackboard.balls[0].position_x
+        ball_y = self.blackboard.balls[0].position_y
+
+        sin_theta = self.radius * math.sin(theta)
+        cos_theta = self.radius * math.cos(theta)
+
+        y_d = sin_theta + -1 * ball_y
+        x_d = cos_theta + -1 * ball_x
+
+        return x_d, y_d
 
 class CheckBallDistance(LeafNode):
     def __init__(self, name):
@@ -69,7 +96,7 @@ class CheckGoalDistance(LeafNode):
         self.goal_position_y = 0
         self.position_x = self.blackboard.ally_robots[0].position_x
         self.position_y = self.blackboard.ally_robots[0].position_y
-        self.radius = 675
+        self.radius = 675 # eu acho que eh o raio da area que o nosso robo entra em modo de ataque
 
     def run(self):
 
@@ -94,10 +121,10 @@ class MoveToGoal(LeafNode):
 
     def run(self):
         if self.blackboard.gui.is_field_side_left:
-            return TaskStatus.SUCCESS, self.movement.run(self.goal_position_x, self.goal_position_y, self.theta)
+            return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.goal_position_x, self.goal_position_y, self.theta)
         else:
             self.theta = math.pi
-            return TaskStatus.SUCCESS, self.movement.run(-self.goal_position_x, self.goal_position_y, self.theta)
+            return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(-self.goal_position_x, self.goal_position_y, self.theta)
 
 
 class ShootBall(LeafNode):

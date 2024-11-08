@@ -182,19 +182,27 @@ class StraightMovement():
         
 class GetInAngleStrategy():
     """This class have types of movements using GetInAngleProfile"""
-
+    def __init__(self):
+        super().__init__()
+        self.blackboard = Blackboard()
 
     def run(self, p_x, p_y, theta):
-        self.blackboard = Blackboard()
     # Theta is use in path_profile and angle is use in orientation_profile
-
         return {"obstacles" : [],
                 "path_profile" : MovementProfiles.GetInAngle,
                 "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
                 "path_kwargs" : {"goal_state" : (p_x,p_y),"theta" : theta},
                 "orientation_kwargs" : {"theta" : theta}}
-        
+    
+    def moveToEnemyGoal(self, p_x, p_y, theta):
+        """Moviment to the enemy goal"""
+        return {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry)],
+                "path_profile" : MovementProfiles.GetInAngle,
+                "orientation_profile": DirectionProfiles.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (p_x,p_y),"theta" : theta},
+                "orientation_kwargs" : {"theta" : theta}}
     
 
 class BreakStrategy():

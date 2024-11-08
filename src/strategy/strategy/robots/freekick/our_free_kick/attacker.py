@@ -14,16 +14,13 @@ class MoveToBall(LeafNode):
         self.radius = 200
 
         if self.blackboard.gui.is_field_side_left: 
-
             for line in self.blackboard.geometry.field_lines:
                 if line.name == 'RightGoalLine':
                     self.goal_field = line
         else:
-
             for line in self.blackboard.geometry.field_lines:
                 if line.name == 'LeftGoalLine':
                     self.goal_field = line
-
 
         self.ball_x = self.blackboard.balls[0].position_x
         self.ball_y = self.blackboard.balls[0].position_y
@@ -31,6 +28,7 @@ class MoveToBall(LeafNode):
     def run(self):
         m, b = self.draw_line()
 
+        #Huge mamaco, refactor this
         if self.blackboard.gui.is_field_side_left:
             theta = math.atan(m)
         else:
@@ -41,7 +39,6 @@ class MoveToBall(LeafNode):
         print(f"position x_d : {-x_d}")
         print(f"position y_d : {-y_d}")
         print(f"theta : {theta}")
-
 
         return TaskStatus.SUCCESS, self.movement.run(-x_d, -y_d, theta)
     
@@ -101,7 +98,6 @@ class OurAttackerAction(Sequence):
 
     def __call__(self):
         return super().run()[1]
-
 
 
 class TheirAttackerAction():
