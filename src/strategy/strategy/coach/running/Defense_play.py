@@ -82,15 +82,16 @@ class GetPoints():
 class DefensivePlay():
     def __init__(self):
         self.blackboard = Blackboard()
-        self.points = GetPoints().run()
+        self.points = []
         self.distances = {}
         self.assignments = {}
 
     def run(self):
+        self.points = GetPoints().run()
         self.distance_p2r()
         self.calculate_wanted_points()
         self.distribute_points()
-        return dict(sorted(self.assignments.items()))
+        return self.assignments
     
     """Calculate the points outside the penalty area line that the robots need to go"""
     def calculate_wanted_points(self):
@@ -101,18 +102,18 @@ class DefensivePlay():
             
             if self.blackboard.gui.is_field_side_left:
                 if new_point[0] == -1750:
-                    new_point[0] += 110  # Move point in front of line adding the radius of robot plus 10
+                    new_point[0] += 150  # Move point in front of line adding the radius of robot plus 10
                 if new_point[1] == -675:
-                    new_point[1] -= 110
+                    new_point[1] -= 150
                 elif new_point[1] == 675:
-                    new_point[1] += 110
+                    new_point[1] += 150
             else:
                 if new_point[0] == 1750:
-                    new_point[0] -= 110  # Move point in front of line adding the radius of robot plus 10
+                    new_point[0] -= 150  # Move point in front of line adding the radius of robot plus 10
                 if new_point[1] == -675:
-                    new_point[1] -= 110
+                    new_point[1] -= 150
                 elif new_point[1] == 675:
-                    new_point[1] += 110
+                    new_point[1] += 150
 
             adjusted_points.append(tuple(new_point))
 
@@ -121,11 +122,12 @@ class DefensivePlay():
     """Calculate the distance between a point and a robot"""
     def distance_p2r(self):
         for robot in self.blackboard.ally_robots:
-            self.distances[robot] = []
-            for point in self.points:
-                distance = math.sqrt((point[0] - self.blackboard.ally_robots[robot].position_x) ** 2 + (point[1] - self.blackboard.ally_robots[robot].position_y) ** 2)
-                self.distances[robot].append(distance)
-    
+            if robot != self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper:
+                self.distances[robot] = []
+                for point in self.points:
+                    distance = math.sqrt((point[0] - self.blackboard.ally_robots[robot].position_x) ** 2 + (point[1] - self.blackboard.ally_robots[robot].position_y) ** 2)
+                    self.distances[robot].append(distance)
+        
     """Distribute the position to each defender choosing the most close to point"""
     def distribute_points(self):
         # Initialize a set to keep track of assigned points

@@ -68,10 +68,12 @@ class Robot(Node):
 
     def run(self):
         
-        # if self.behaviour == None:
-        self.behaviour =  OurActionAttacker("name")
-        
-        command = self.behaviour()
+        # self.behaviour =  OurActionAttacker("name")
+        if self.behaviour != None:
+            command = self.behaviour()
+        else:
+            self.behaviour = ActionAttacker()
+            command = self.behaviour()
        
         self.get_logger().info(f"Real: {self.get_state(from_vision=True)[0][2]} // Expected: {self.orientation_trajectory.at_time(self.get_relative_time())[0]}")
         

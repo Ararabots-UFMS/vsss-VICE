@@ -4,6 +4,7 @@ from strategy.blackboard import Blackboard
 from strategy.behaviour import LeafNode, Sequence, Selector
 from strategy.behaviour import TaskStatus
 from strategy.coach.running.Defense_play import DefensivePlay
+from strategy.robots.penalty.our_penalty.goalkeeper import OurGoalkeeperAction
 from strategy.robots.running.attacker import OurActionAttacker
 from strategy.robots.running.defensive import OurActionDefender
 from strategy.robots.halt.defender import ActionDefender
@@ -46,14 +47,16 @@ class IsTheirPossession(LeafNode):
     def __init__(self, name):
         self.name =name
         self.blackboard = Blackboard()
-        self.points = DefensivePlay().run()
         self.commands = {}
+
     def run(self):
+        self.points = DefensivePlay().run()
         for robot in self.blackboard.ally_robots:
-            if robot in self.points and self.points[robot] is not None:
-                self.commands[robot] = OurActionDefender("Defend!!!", self.points[robot])
+            if robot != self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper:
+                if robot in self.points and self.points[robot] is not None:
+                    self.commands[robot] = OurActionDefender("Defend!!!", self.points[robot])
             else:
-                self.commands[robot] = ActionDefender()
+                self.commands[robot] = OurGoalkeeperAction("name")
 
 
         return TaskStatus.SUCCESS, self.commands
