@@ -24,7 +24,8 @@ class GetPoints():
         # Calculate intersection points
         x = (n2 - n1) / (m1 - m2)
         y = m1 * x + n1
-        return x, y
+        theta = math.atan(x)
+        return x, y, theta
     
     def find_points(self):
         # Get triangle and penalty area line equations
@@ -39,38 +40,43 @@ class GetPoints():
         left_intersection_line2 = self.find_intersection(m_triangle_left, n_triangle_left, m_penalty_left, n_penalty_left)
         if left_intersection_line2:
             # Round values to integers
-            rounded_point = (round(left_intersection_line2[0]), round(left_intersection_line2[1]))
+            rounded_point = (round(left_intersection_line2[0]), round(left_intersection_line2[1]), left_intersection_line2[2])
             self.points_to_defend.append(rounded_point)
         
         left_intersection_line1 = self.find_intersection(m_triangle_right, n_triangle_right, m_penalty_left, n_penalty_left)
         if left_intersection_line1:
-            rounded_point = (round(left_intersection_line1[0]), round(left_intersection_line1[1]))
+            rounded_point = (round(left_intersection_line1[0]), round(left_intersection_line1[1]), -left_intersection_line1[2])
             self.points_to_defend.append(rounded_point)
         
         # Find intersection between right lines
         right_intersection_line1 = self.find_intersection(m_triangle_right, n_triangle_right, m_penalty_right, n_penalty_right)
         if right_intersection_line1:
-            rounded_point = (round(right_intersection_line1[0]), round(right_intersection_line1[1]))
+            rounded_point = (round(right_intersection_line1[0]), round(right_intersection_line1[1]), right_intersection_line1[2])
             self.points_to_defend.append(rounded_point)
 
         right_intersection_line2 = self.find_intersection(m_triangle_left, n_triangle_left, m_penalty_right, n_penalty_right)
         if right_intersection_line2:
-            rounded_point = (round(right_intersection_line2[0]), round(right_intersection_line2[1]))
+            rounded_point = (round(right_intersection_line2[0]), round(right_intersection_line2[1]), right_intersection_line2[2])
             self.points_to_defend.append(rounded_point)
         
         # Find intersection with the front line (vertical line)
         # Front line has constant x = x_front, so we use triangle lines to find y at this x.
         
         # Intersection of front line with left triangle line
+        if self.blackboard.gui.is_field_side_left:
+            theta = 0
+        else:
+            theta = math.pi
+
         if m_triangle_left != 0:  # Avoid division by zero in case of horizontal line
             y_left_front = m_triangle_left * x_front + n_triangle_left
-            rounded_point = (round(x_front), round(y_left_front))
+            rounded_point = (round(x_front), round(y_left_front), theta)
             self.points_to_defend.append(rounded_point)
         
         # Intersection of front line with right triangle line
         if m_triangle_right != 0:  # Avoid division by zero in case of horizontal line
             y_right_front = m_triangle_right * x_front + n_triangle_right
-            rounded_point = (round(x_front), round(y_right_front))
+            rounded_point = (round(x_front), round(y_right_front), theta)
             self.points_to_defend.append(rounded_point)
         
         self.remove_invalid_points()
@@ -101,16 +107,18 @@ class DefensivePlay():
         self.distance_p2r()
         self.calculate_wanted_points()
         self.distribute_points()
+        print(self.assignments)
         return self.assignments
     
     """Calculate the points outside the penalty area line that the robots need to go"""
+    #TODO this approach need to be refact in the future
     def calculate_wanted_points(self):
         adjusted_points = []
         self.padding = 100
 
         print(self.points)
         # New approach: adjust points outside the penalty area line
-        left_point = list(self.points[0])  # convert to list to allow modification
+        left_point = list(self.points[0])
         right_point = list(self.points[1])
 
         self.mult = -1
@@ -142,13 +150,21 @@ class DefensivePlay():
 
         
         # Vertical alignment
-        elif left_point[1] == right_point[1]:  
-            if left_point[1] > 0:
-                left_point[1] += self.padding*self.mult
-                right_point[1] += self.padding*self.mult
+        elif left_point[1] == right_point[1]:
+            if self.blackboard.gui.is_field_side_left:  
+                if left_point[1] > 0:
+                    left_point[1] += self.padding*self.mult
+                    right_point[1] += self.padding*self.mult
+                else:
+                    left_point[1] -= self.padding*self.mult
+                    right_point[1] -= self.padding*self.mult
             else:
-                left_point[1] -= self.padding*self.mult
-                right_point[1] -= self.padding*self.mult
+                if left_point[1] > 0:
+                    left_point[1] -= self.padding*self.mult
+                    right_point[1] -= self.padding*self.mult
+                else:
+                    left_point[1] += self.padding*self.mult
+                    right_point[1] += self.padding*self.mult
             if self.blackboard.gui.is_field_side_left:
                 if left_point[0] > right_point[0]:
                     left_point[0] -= self.padding*self.mult
@@ -169,19 +185,23 @@ class DefensivePlay():
         
         # Quadrant-based positioning
         else:
-            one_point = [0, 0]
+            one_point = [0, 0, 0]
             if self.blackboard.balls[0].position_y > 0 and self.blackboard.balls[0].position_x < 0:
                 one_point[0] = -1750 + self.padding
                 one_point[1] = +675 + self.padding
+                one_point[2] = math.pi * 1/4
             elif self.blackboard.balls[0].position_y < 0 and self.blackboard.balls[0].position_x > 0:
                 one_point[0] = +1750 - self.padding
                 one_point[1] = -675 - self.padding
+                one_point[2] = math.pi * 5/4
             elif self.blackboard.balls[0].position_y > 0 and self.blackboard.balls[0].position_x > 0:
                 one_point[0] = +1750 - self.padding
                 one_point[1] = +675 + self.padding
+                one_point[2] = math.pi * 3/4
             elif self.blackboard.balls[0].position_y < 0 and self.blackboard.balls[0].position_x < 0:
                 one_point[0] = -1750 + self.padding
                 one_point[1] = -675 - self.padding
+                one_point[2] = math.pi * 7/4
             adjusted_points.append(tuple(one_point))
 
         self.points = adjusted_points
