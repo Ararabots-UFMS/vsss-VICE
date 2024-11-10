@@ -38,20 +38,25 @@ class GetPoints():
         # Find intersection between left lines
         left_intersection_line2 = self.find_intersection(m_triangle_left, n_triangle_left, m_penalty_left, n_penalty_left)
         if left_intersection_line2:
-            self.points_to_defend.append(left_intersection_line2)
+            # Round values to integers
+            rounded_point = (round(left_intersection_line2[0]), round(left_intersection_line2[1]))
+            self.points_to_defend.append(rounded_point)
         
         left_intersection_line1 = self.find_intersection(m_triangle_right, n_triangle_right, m_penalty_left, n_penalty_left)
         if left_intersection_line1:
-            self.points_to_defend.append(left_intersection_line1)
+            rounded_point = (round(left_intersection_line1[0]), round(left_intersection_line1[1]))
+            self.points_to_defend.append(rounded_point)
         
         # Find intersection between right lines
         right_intersection_line1 = self.find_intersection(m_triangle_right, n_triangle_right, m_penalty_right, n_penalty_right)
         if right_intersection_line1:
-            self.points_to_defend.append(right_intersection_line1)
+            rounded_point = (round(right_intersection_line1[0]), round(right_intersection_line1[1]))
+            self.points_to_defend.append(rounded_point)
 
         right_intersection_line2 = self.find_intersection(m_triangle_left, n_triangle_left, m_penalty_right, n_penalty_right)
         if right_intersection_line2:
-            self.points_to_defend.append(right_intersection_line2)
+            rounded_point = (round(right_intersection_line2[0]), round(right_intersection_line2[1]))
+            self.points_to_defend.append(rounded_point)
         
         # Find intersection with the front line (vertical line)
         # Front line has constant x = x_front, so we use triangle lines to find y at this x.
@@ -59,23 +64,28 @@ class GetPoints():
         # Intersection of front line with left triangle line
         if m_triangle_left != 0:  # Avoid division by zero in case of horizontal line
             y_left_front = m_triangle_left * x_front + n_triangle_left
-            self.points_to_defend.append((x_front, y_left_front))
+            rounded_point = (round(x_front), round(y_left_front))
+            self.points_to_defend.append(rounded_point)
         
         # Intersection of front line with right triangle line
         if m_triangle_right != 0:  # Avoid division by zero in case of horizontal line
             y_right_front = m_triangle_right * x_front + n_triangle_right
-            self.points_to_defend.append((x_front, y_right_front))
+            rounded_point = (round(x_front), round(y_right_front))
+            self.points_to_defend.append(rounded_point)
         
         self.remove_invalid_points()
-        # print(self.points_to_defend)
+        print(self.points_to_defend)
+
 
     def remove_invalid_points(self):
         for point in self.points_to_defend[:]:
             if self.blackboard.gui.is_field_side_left:
                 if point[0] < -2250 or point[0] > -1750 or abs(point[1]) > 675:
+                    print(f"removendo em 1: {point}")
                     self.points_to_defend.remove(point) 
             else:
                 if point[0] > 2250 or point[0] < 1750 or abs(point[1]) > 675:
+                    print(f"removendo em 2: {point}")
                     self.points_to_defend.remove(point)                 
 
 
@@ -96,64 +106,86 @@ class DefensivePlay():
     """Calculate the points outside the penalty area line that the robots need to go"""
     def calculate_wanted_points(self):
         adjusted_points = []
+        self.padding = 100
 
-        # left_point = self.points[0]
-        # right_point = self.points[1]
+        print(self.points)
+        # New approach: adjust points outside the penalty area line
+        left_point = list(self.points[0])  # convert to list to allow modification
+        right_point = list(self.points[1])
 
-        # if left_point[0] == right_point[0]:
-        #     left_point[0] += 100
-        #     right_point[0] += 100
-        #     if left_point[1] > right_point[1]:
-        #         left_point[1] -= 100
-        #         right_point[1] += 100
-        #     elif left_point[1] < right_point[1]:
-        #         left_point[1] += 100
-        #         right_point[1] -= 100
-        # elif left_point[1] == right_point[1]:
-        #     if left_point[1] > 0:
-        #         left_point[1] -= 100
-        #         right_point[1] -= 100
-        #     else:
-        #         left_point[1] += 100
-        #         right_point[1] += 100
-        #     if left_point[0] > right_point[0]:
-        #         left_point[0] -= 100
-        #         right_point[0] += 100
-        #     elif left_point[0] < right_point[0]:
-        #         left_point[0] += 100
-        #         right_point[0] -= 100
-        # elif self.blackboard.balls[1] > 0:
-        #         left_point[1] += 100
-        #         right_point[1] += 100
-        #         left_point[0] += 100
-        #         right_point[0] += 100
-        # else:
-        #     left_point[1] -= 100
-        #     right_point[1] -= 100
-        #     left_point[0] -= 100
-        #     right_point[0] -= 100
+        self.mult = -1
+        # Horizontal alignment
+        if self.blackboard.gui.is_field_side_left:
+            self.mult = 1
 
-        for point in self.points:
-            new_point = list(point)
-            
+
+        if left_point[0] == right_point[0]:  
+            left_point[0] += self.padding*self.mult
+            right_point[0] += self.padding*self.mult
             if self.blackboard.gui.is_field_side_left:
-                if new_point[0] == -1750:
-                    new_point[0] += 100  # Move point in front of line adding the radius of robot plus 10
-                if new_point[1] == -675:
-                    new_point[1] -= 100
-                elif new_point[1] == 675:
-                    new_point[1] += 100
+                if left_point[1] > right_point[1]:
+                    left_point[1] -= self.padding*self.mult
+                    right_point[1] += self.padding*self.mult
+                else:
+                    left_point[1] += self.padding*self.mult
+                    right_point[1] -= self.padding*self.mult
             else:
-                if new_point[0] == 1750:
-                    new_point[0] -= 100  # Move point in front of line adding the radius of robot plus 10
-                if new_point[1] == -675:
-                    new_point[1] -= 100
-                elif new_point[1] == 675:
-                    new_point[1] += 100
+                if left_point[1] > right_point[1]:
+                    left_point[1] += self.padding*self.mult
+                    right_point[1] -= self.padding*self.mult
+                else:
+                    left_point[1] -= self.padding*self.mult
+                    right_point[1] += self.padding*self.mult
 
-            adjusted_points.append(tuple(new_point))
+            adjusted_points.append(tuple(left_point))
+            adjusted_points.append(tuple(right_point))
+
+        
+        # Vertical alignment
+        elif left_point[1] == right_point[1]:  
+            if left_point[1] > 0:
+                left_point[1] += self.padding*self.mult
+                right_point[1] += self.padding*self.mult
+            else:
+                left_point[1] -= self.padding*self.mult
+                right_point[1] -= self.padding*self.mult
+            if self.blackboard.gui.is_field_side_left:
+                if left_point[0] > right_point[0]:
+                    left_point[0] -= self.padding*self.mult
+                    right_point[0] += self.padding*self.mult
+                else:
+                    left_point[0] += self.padding*self.mult
+                    right_point[0] -= self.padding*self.mult
+            else:
+                if left_point[0] > right_point[0]:
+                    left_point[0] += self.padding*self.mult
+                    right_point[0] -= self.padding*self.mult
+                else:
+                    left_point[0] -= self.padding*self.mult
+                    right_point[0] += self.padding*self.mult
+            adjusted_points.append(tuple(left_point))
+            adjusted_points.append(tuple(right_point))
+
+        
+        # Quadrant-based positioning
+        else:
+            one_point = [0, 0]
+            if self.blackboard.balls[0].position_y > 0 and self.blackboard.balls[0].position_x < 0:
+                one_point[0] = -1750 + self.padding
+                one_point[1] = +675 + self.padding
+            elif self.blackboard.balls[0].position_y < 0 and self.blackboard.balls[0].position_x > 0:
+                one_point[0] = +1750 - self.padding
+                one_point[1] = -675 - self.padding
+            elif self.blackboard.balls[0].position_y > 0 and self.blackboard.balls[0].position_x > 0:
+                one_point[0] = +1750 - self.padding
+                one_point[1] = +675 + self.padding
+            elif self.blackboard.balls[0].position_y < 0 and self.blackboard.balls[0].position_x < 0:
+                one_point[0] = -1750 + self.padding
+                one_point[1] = -675 - self.padding
+            adjusted_points.append(tuple(one_point))
 
         self.points = adjusted_points
+        print(self.points)
 
     """Calculate the distance between a point and a robot"""
     def distance_p2r(self):
@@ -166,30 +198,32 @@ class DefensivePlay():
         
     """Distribute the position to each defender choosing the most close to point"""
     def distribute_points(self):
-        # Initialize a set to keep track of assigned points
-        assigned_points = set()
-        self.assignments = {}  # Store each robot's assigned point
-        # Sort robots by minimum distance to points
+        assigned_points = set()  # Track points already assigned
+        self.assignments = {}  # Reset assignments for each robot
+
+        # Sort robots by their minimum distance to points
         sorted_robots = sorted(
             ((robot, distances) for robot, distances in self.distances.items() if distances),
-            key=lambda item: min(item[1]))
+            key=lambda item: min(item[1]) if item[1] else float('inf')
+        )
 
-
-        # Assign each robot the closest available point
+        # Assign each robot to the closest available point
         for robot, distances in sorted_robots:
             closest_point = None
             min_distance = float('inf')
 
             # Find the closest unassigned point for this robot
             for i, distance in enumerate(distances):
-                if distance < min_distance and i not in assigned_points:
+                # Ensure index i is within the range of self.points
+                if distance < min_distance and i < len(self.points) and i not in assigned_points:
                     min_distance = distance
-                    closest_point = i  # Index of the closest point
+                    closest_point = i
 
-            # Assign this closest point to the robot if found
+            # Assign the closest available point if found
             if closest_point is not None:
                 self.assignments[robot] = self.points[closest_point]
                 assigned_points.add(closest_point)  # Mark this point as assigned
+
                 
 
 

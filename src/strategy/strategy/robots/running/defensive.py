@@ -18,7 +18,7 @@ class DefensePosition(LeafNode):
             theta = 0
         else:
             theta = math.pi
-        print(f"indo para o ponto : {self.point}")
+        # print(f"indo para o ponto : {self.point}")
         return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(self.point[0], self.point[1], theta)
     
 
@@ -38,10 +38,10 @@ class CheckBallDistance(LeafNode):
         distance = math.sqrt((self.position_x - self.ball_position_x) ** 2 + (self.position_y - self.ball_position_y) ** 2)
 
         if distance > self.radius:
-            print(f"Estou longe da bola : {distance}")
+            # print(f"Estou longe da bola : {distance}")
             return TaskStatus.FAILURE, None
         else:
-            print(f"Estou perto da bola {distance}")
+            # print(f"Estou perto da bola {distance}")
             return TaskStatus.SUCCESS, self.movement._break()
         
 
