@@ -3,6 +3,7 @@ from strategy.blackboard import Blackboard
 from strategy.behaviour import LeafNode, Sequence, Selector
 from strategy.behaviour import TaskStatus
 from strategy.robots.freekick.our_free_kick.attacker import OurAttackerAction, TheirAttackerAction
+from strategy.robots.stop.attacker import AttackerAction
 
 class CheckState(LeafNode):
     def __init__(self, name, _desired_states):
@@ -42,7 +43,7 @@ class OurFreekickAction(LeafNode):
         
     def run(self):
         for robot in self.blackboard.ally_robots:
-            self.commands[robot] = OurAttackerAction()
+            self.commands[robot] = OurAttackerAction("name")
 
         return TaskStatus.SUCCESS, self.commands
     
@@ -54,7 +55,7 @@ class TheirFreeKickAction(LeafNode):
         
     def run(self):
         for robot in self.blackboard.ally_robots:
-            self.commands[robot] = TheirAttackerAction()
+            self.commands[robot] = AttackerAction("stop")
         
         return TaskStatus.SUCCESS, self.commands
     

@@ -41,12 +41,12 @@ class DefensePosition(LeafNode):
 
         distance_ball_goal = self.calculate_distance_to_ball_goal()
 
-        print(f"Distance to ball goal : {distance_ball_goal}")
-        print(f"Distance to enemy : {enemy_distance}")
+        # print(f"Distance to ball goal : {distance_ball_goal}")
+        # print(f"Distance to enemy : {enemy_distance}")
 
-        print(f"Goal x : {self.goal_x}")
-        print(f"Goal y : {self.goal_y}")
-        print("theta : ", theta)
+        # print(f"Goal x : {self.goal_x}")
+        # print(f"Goal y : {self.goal_y}")
+        # print("theta : ", theta)
 
         if enemy_distance < self.minimal_distance and distance_ball_goal < self.minimal_distance:
             return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(self.ball.position_x, self.ball.position_y, theta)

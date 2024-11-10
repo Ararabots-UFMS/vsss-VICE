@@ -97,23 +97,59 @@ class DefensivePlay():
     def calculate_wanted_points(self):
         adjusted_points = []
 
+        # left_point = self.points[0]
+        # right_point = self.points[1]
+
+        # if left_point[0] == right_point[0]:
+        #     left_point[0] += 100
+        #     right_point[0] += 100
+        #     if left_point[1] > right_point[1]:
+        #         left_point[1] -= 100
+        #         right_point[1] += 100
+        #     elif left_point[1] < right_point[1]:
+        #         left_point[1] += 100
+        #         right_point[1] -= 100
+        # elif left_point[1] == right_point[1]:
+        #     if left_point[1] > 0:
+        #         left_point[1] -= 100
+        #         right_point[1] -= 100
+        #     else:
+        #         left_point[1] += 100
+        #         right_point[1] += 100
+        #     if left_point[0] > right_point[0]:
+        #         left_point[0] -= 100
+        #         right_point[0] += 100
+        #     elif left_point[0] < right_point[0]:
+        #         left_point[0] += 100
+        #         right_point[0] -= 100
+        # elif self.blackboard.balls[1] > 0:
+        #         left_point[1] += 100
+        #         right_point[1] += 100
+        #         left_point[0] += 100
+        #         right_point[0] += 100
+        # else:
+        #     left_point[1] -= 100
+        #     right_point[1] -= 100
+        #     left_point[0] -= 100
+        #     right_point[0] -= 100
+
         for point in self.points:
             new_point = list(point)
             
             if self.blackboard.gui.is_field_side_left:
                 if new_point[0] == -1750:
-                    new_point[0] += 150  # Move point in front of line adding the radius of robot plus 10
+                    new_point[0] += 100  # Move point in front of line adding the radius of robot plus 10
                 if new_point[1] == -675:
-                    new_point[1] -= 150
+                    new_point[1] -= 100
                 elif new_point[1] == 675:
-                    new_point[1] += 150
+                    new_point[1] += 100
             else:
                 if new_point[0] == 1750:
-                    new_point[0] -= 150  # Move point in front of line adding the radius of robot plus 10
+                    new_point[0] -= 100  # Move point in front of line adding the radius of robot plus 10
                 if new_point[1] == -675:
-                    new_point[1] -= 150
+                    new_point[1] -= 100
                 elif new_point[1] == 675:
-                    new_point[1] += 150
+                    new_point[1] += 100
 
             adjusted_points.append(tuple(new_point))
 

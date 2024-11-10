@@ -14,9 +14,12 @@ class DefensePosition(LeafNode):
         
 
     def run(self):
-
+        if self.blackboard.gui.is_field_side_left:
+            theta = 0
+        else:
+            theta = math.pi
         print(f"indo para o ponto : {self.point}")
-        return TaskStatus.SUCCESS, self.movement.move2point(self.point[0], self.point[1])
+        return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(self.point[0], self.point[1], theta)
     
 
 class CheckBallDistance(LeafNode):

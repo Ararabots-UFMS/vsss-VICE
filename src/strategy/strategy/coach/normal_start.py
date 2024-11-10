@@ -9,41 +9,47 @@ from strategy.robots.running.attacker import OurActionAttacker
 from strategy.robots.running.defensive import OurActionDefender
 from strategy.robots.halt.defender import ActionDefender
 
-class CheckOurDistance(LeafNode):
+class CheckZone(LeafNode):
     def __init__(self, name):
         super().__init__(name)
         self.blackboard = Blackboard()
-        self.goal_position_x = 2250
-        self.goal_position_y = 0
-        self.position_x = self.blackboard.ally_robots[0].position_x
-        self.position_y = self.blackboard.ally_robots[0].position_y
-        self.radius = 500
-
-    def run(self):
-
-        distance = math.sqrt((self.position_x - self.goal_position_x) ** 2 + (self.position_y - self.goal_position_y) ** 2)
-
-        if distance <= self.radius:
-            return TaskStatus.SUCCESS, None
-        else:
-            return TaskStatus.FAILURE, None
-        
-        
-class CheckTheirCondition(LeafNode):
-    def __init__(self, name):
-        super().__init__(name)
         self.name = name
+        self.ball = self.blackboard.balls[0]
+        self.padding = 500
+        for line in self.blackboard.geometry.field_lines:
+            if line.name == 'LeftGoalLine':
+                self.left_goal = line.x1
+            elif line.name == 'CenterLine':
+                self.middle_left =  -1*self.padding
+                self.middle_right = +1*self.padding
+            elif line.name == 'RightGoalLine':
+                self.right_goal = line.x1
 
     def run(self):
-        status = True
-        if status:
-            return TaskStatus.SUCCESS, None
+        if self.blackboard.gui.is_field_side_left:
+            if self.name == "DefenseZone":
+                if self.ball.position_x >= self.left_goal and self.ball.position_x < self.middle_left:
+                    return TaskStatus.SUCCESS, None
+            elif self.name == "MiddleZone":
+                if self.ball.position_x >= self.middle_left and self.ball.position_x <= self.middle_right:
+                    return TaskStatus.SUCCESS, None
+            elif self.name == "AttackZone":
+                if self.ball.position_x > self.middle_right and self.ball.position_x <= self.right_goal:
+                    return TaskStatus.SUCCESS, None
         else:
-            return TaskStatus.FAILURE, None
+            if self.name == "AttackZone":
+                if self.ball.position_x >= self.left_goal and self.ball.position_x < self.middle_left:
+                    return TaskStatus.SUCCESS, None
+            elif self.name == "MiddleZone":
+                if self.ball.position_x >= self.middle_left and self.ball.position_x <= self.middle_right:
+                    return TaskStatus.SUCCESS, None
+            elif self.name == "DefenseZone":
+                if self.ball.position_x > self.middle_right and self.ball.position_x <= self.right_goal:
+                    return TaskStatus.SUCCESS, None
         
+        return TaskStatus.FAILURE, None
 
-
-class IsTheirPossession(LeafNode):
+class IsOurDefense(LeafNode):
     def __init__(self, name):
         self.name =name
         self.blackboard = Blackboard()
@@ -62,7 +68,7 @@ class IsTheirPossession(LeafNode):
         return TaskStatus.SUCCESS, self.commands
         
 
-class IsOurPossession(LeafNode):
+class IsOurAttack(LeafNode):
     def __init__(self, name):
         self.name =name
         self.blackboard = Blackboard()
@@ -70,10 +76,13 @@ class IsOurPossession(LeafNode):
 
     def run(self):
         for robot in self.blackboard.ally_robots:
-            self.commands[robot] = OurActionAttacker("Attack!!!!")
+            if robot != self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper:
+                self.commands[robot] = OurActionAttacker("Attack!!!")
+            else:
+                self.commands[robot] = OurGoalkeeperAction("name")
 
         return TaskStatus.SUCCESS, self.commands
-
+    
 
 class CheckStart(LeafNode):
     def __init__(self, name, commands):
@@ -91,32 +100,47 @@ class CheckStart(LeafNode):
 class Running(Sequence):
     def __init__(self, name):
         super().__init__(name, [])
-
-        self.blackboard = Blackboard()
+        self.last_command = IsOurAttack("IsOurAttack")
+        self.blackboard = Blackboard()    
         
         commands = ["NORMAL_START", "FORCE_START"]
 
         is_running = CheckStart("CheckStart", commands)
         
-        ours_action = IsOurPossession("IsOurPossession")
+        attack_action = IsOurAttack("IsOurAttack")
 
-        ours_with_ball = CheckOurDistance("CheckOurDistance")
+        defense_action = IsOurDefense("IsOurDefense")
 
-        theirs_action = IsTheirPossession("IsTheirPossession")
+        attack_zone = CheckZone("AttackZone")
 
-        theirs_with_ball = CheckTheirCondition("CheckTheirCondition")
+        middle_zone = CheckZone("MiddleZone")
 
-        ours = Sequence("OursNormalStart", [ours_with_ball, ours_action])
+        defense_zone = CheckZone("DefenseZone")
 
-        theirs = Sequence("TheirNormalStart", [theirs_with_ball, theirs_action])
+        attack = Sequence("AttackSequence", [attack_zone, attack_action])
 
-        running_selector = Selector("RunningSelector", [theirs, ours])
+        middle = Sequence("MiddleZone", [middle_zone, self.last_command])
 
+        defend = Sequence("DefenseSequence", [defense_zone, defense_action])
+           
+        running_selector = Selector("RunningSelector", [defend, middle, attack])
 
         self.add_children([is_running, running_selector])
 
+
     def run(self):
-        return super().run()
+        
+        command = super().run()
+        dict = command[1] 
+        if dict != None:
+            if self.blackboard.referee.teams != []:
+                goalkeeper_id = self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper
+                if dict[goalkeeper_id] != OurActionAttacker("Attack!!!!"):
+                    self.last_command = IsOurDefense("IsOurDefense")
+                else:
+                    self.last_command = IsOurAttack("IsOurAttack")
+
+        return command
 
 
        

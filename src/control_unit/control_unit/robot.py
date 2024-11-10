@@ -75,8 +75,6 @@ class Robot(Node):
             self.behaviour = ActionAttacker()
             command = self.behaviour()
        
-        self.get_logger().info(f"Real: {self.get_state(from_vision=True)[0][2]} // Expected: {self.orientation_trajectory.at_time(self.get_relative_time())[0]}")
-        
 
         self.update_trajectory(command)
 
