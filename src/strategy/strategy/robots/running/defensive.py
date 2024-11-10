@@ -19,37 +19,39 @@ class DefensePosition(LeafNode):
     
 
 class CheckBallDistance(LeafNode):
-    def __init__(self, name):
+    def __init__(self, name, point, robot_id):
         super().__init__(name)
         self.blackboard = Blackboard()
-        self.movement = BreakStrategy()
+        self.movement = NormalMovement()
         self.ball_position_x = self.blackboard.balls[0].position_x
         self.ball_position_y = self.blackboard.balls[0].position_y
-        self.position_x = self.blackboard.ally_robots[0].position_x
-        self.position_y = self.blackboard.ally_robots[0].position_y
-        self.radius = 142
+        self.position_x = self.blackboard.ally_robots[robot_id].position_x
+        self.position_y = self.blackboard.ally_robots[robot_id].position_y
+        self.point = point
+        self.radius = 172
 
     def run(self):
 
         distance = math.sqrt((self.position_x - self.ball_position_x) ** 2 + (self.position_y - self.ball_position_y) ** 2)
 
         if distance > self.radius:
-            # print(f"Estou longe da bola : {distance}")
+            print(f"Estou longe da bola : {distance}")
             return TaskStatus.FAILURE, None
         else:
-            # print(f"Estou perto da bola {distance}")
-            return TaskStatus.SUCCESS, self.movement._break()
+            print(f"Estou perto da bola {distance}")
+            return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(self.ball_position_x, self.ball_position_y, self.point[2])
         
 
 
 class OurActionDefender(Selector):
-    def __init__(self, name, points):
+    def __init__(self, name, points, robot_id):
         super().__init__(name, [])
         self.blackboard = Blackboard()
         self.point = points
-        is_near_ball = CheckBallDistance("CheckBallDistance")
+        # take_ball = TakeBall("TakeBall", self.point)
+        is_near_ball = CheckBallDistance("CheckBallDistance", self.point, robot_id)
         defensive_mode = DefensePosition("DefensivePosition", self.point)
-        self.add_children([defensive_mode])
+        self.add_children([is_near_ball, defensive_mode])
     
     def __call__(self):
         return super().run()[1]

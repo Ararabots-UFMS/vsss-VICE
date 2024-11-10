@@ -23,7 +23,7 @@ class StopAction(LeafNode):
 
     def run(self):
         for robot in self.blackboard.ally_robots:
-            self.commands[robot] = AttackerAction("AttackerAction")
+            self.commands[robot] = AttackerAction("AttackerAction", robot)
 
         return TaskStatus.SUCCESS, self.commands
     

@@ -15,21 +15,21 @@ class StopAction(LeafNode):
         return TaskStatus.SUCCESS, self.movement._break()
 
 class CheckDistance(LeafNode):
-    def __init__(self, name):
+    def __init__(self, name, robot_id):
         super().__init__(name)
         self.name = "CheckDistance"
         self.blackboard = Blackboard()
+        self.position_x = self.blackboard.ally_robots[robot_id].position_x
+        self.position_y = self.blackboard.ally_robots[robot_id].position_y
+        self.ball_x = self.blackboard.balls[0].position_x
+        self.ball_y = self.blackboard.balls[0].position_y
+        self.radius = 612
 
     def run(self):
-        position_x = self.blackboard.ally_robots[0].position_x
-        position_y = self.blackboard.ally_robots[0].position_y
-        ball_x = self.blackboard.balls[0].position_x
-        ball_y = self.blackboard.balls[0].position_y
-        radius = 612
 
-        distance = math.sqrt((position_x - ball_x) ** 2 + (position_y - ball_y) ** 2)
+        distance = math.sqrt((self.position_x - self.ball_x) ** 2 + (self.position_y - self.ball_y) ** 2)
 
-        if distance <= radius:
+        if distance <= self.radius:
             # print(f"distance <- radius : {distance}")
             return TaskStatus.SUCCESS, None
         else:
@@ -95,10 +95,10 @@ class GoAway(LeafNode):
 
 
 class AttackerAction(Selector):
-    def __init__(self, name):
+    def __init__(self, name, robot_id):
         super().__init__(name, [])
 
-        check_distance = CheckDistance("CheckDistance")
+        check_distance = CheckDistance("CheckDistance", robot_id)
 
         go_away = GoAway("GoAway")
 

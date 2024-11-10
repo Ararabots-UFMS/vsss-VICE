@@ -61,7 +61,7 @@ class IsOurDefense(LeafNode):
         for robot in self.blackboard.ally_robots:
             if robot != self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper:
                 if robot in self.points and self.points[robot] is not None:
-                    self.commands[robot] = OurActionDefender("Defend!!!", self.points[robot])
+                    self.commands[robot] = OurActionDefender("Defend!!!", self.points[robot], robot)
             else:
                 self.commands[robot] = OurGoalkeeperAction("name")
 

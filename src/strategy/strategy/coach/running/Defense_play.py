@@ -80,18 +80,15 @@ class GetPoints():
             self.points_to_defend.append(rounded_point)
         
         self.remove_invalid_points()
-        print(self.points_to_defend)
 
 
     def remove_invalid_points(self):
         for point in self.points_to_defend[:]:
             if self.blackboard.gui.is_field_side_left:
                 if point[0] < -2250 or point[0] > -1750 or abs(point[1]) > 675:
-                    print(f"removendo em 1: {point}")
                     self.points_to_defend.remove(point) 
             else:
                 if point[0] > 2250 or point[0] < 1750 or abs(point[1]) > 675:
-                    print(f"removendo em 2: {point}")
                     self.points_to_defend.remove(point)                 
 
 
@@ -107,7 +104,6 @@ class DefensivePlay():
         self.distance_p2r()
         self.calculate_wanted_points()
         self.distribute_points()
-        print(self.assignments)
         return self.assignments
     
     """Calculate the points outside the penalty area line that the robots need to go"""
@@ -116,7 +112,6 @@ class DefensivePlay():
         adjusted_points = []
         self.padding = 100
 
-        print(self.points)
         # New approach: adjust points outside the penalty area line
         left_point = list(self.points[0])
         right_point = list(self.points[1])
@@ -205,7 +200,6 @@ class DefensivePlay():
             adjusted_points.append(tuple(one_point))
 
         self.points = adjusted_points
-        print(self.points)
 
     """Calculate the distance between a point and a robot"""
     def distance_p2r(self):
