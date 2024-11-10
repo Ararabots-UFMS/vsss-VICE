@@ -16,6 +16,15 @@ class NormalMovement():
 
     # theta is radians and position(x,y) is millimeter
 
+    def moveToEnemyGoal(self, p_x, p_y, theta):
+        """Moviment to the enemy goal"""
+        return {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry)],
+                "path_profile" : MovementProfiles.Normal,
+                "orientation_profile": DirectionProfiles.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (p_x,p_y)},
+                "orientation_kwargs" : {"theta" : theta}}
+
 
     def move_to_position_with_orientation(self, p_x, p_y, theta):
         return {"obstacles" : [],

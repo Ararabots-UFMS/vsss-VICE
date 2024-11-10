@@ -10,7 +10,8 @@ class MoveToBall(LeafNode):
         super().__init__(name)
         self.name = "OurActionAttacker"
         self.blackboard = Blackboard()
-        self.movement = GetInAngleStrategy()
+        # self.movement = GetInAngleStrategy()
+        self.movement = NormalMovement()
         self.radius = 200
 
         if self.blackboard.gui.is_field_side_left: 
@@ -40,7 +41,7 @@ class MoveToBall(LeafNode):
         print(f"position y_d : {-y_d}")
         print(f"theta : {theta}")
 
-        return TaskStatus.SUCCESS, self.movement.run(-x_d, -y_d, theta)
+        return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(-x_d, -y_d, theta)
     
     def draw_line(self):
 
@@ -66,13 +67,13 @@ class MoveToBall(LeafNode):
         return x_d, y_d
     
 class CheckBallDistance(LeafNode):
-    def __init__(self, name):
+    def __init__(self, name, robot):
         super().__init__(name)
         self.blackboard = Blackboard()
         self.ball_position_x = self.blackboard.balls[0].position_x
         self.ball_position_y = self.blackboard.balls[0].position_y
-        self.position_x = self.blackboard.ally_robots[0].position_x
-        self.position_y = self.blackboard.ally_robots[0].position_y
+        self.position_x = self.blackboard.ally_robots[robot].position_x
+        self.position_y = self.blackboard.ally_robots[robot].position_y
         self.radius = 300 # 90 de raio do robo + 22 da bola + 50 de folga   
         self.movement = BreakStrategy() 
 
@@ -88,11 +89,11 @@ class CheckBallDistance(LeafNode):
             return TaskStatus.FAILURE, self.movement._break()
             
 class OurAttackerAction(Sequence):
-    def __init__(self, name):
+    def __init__(self, name, robot):
         super().__init__(name, [])
 
         move2ball = MoveToBall("MoveToBall")
-        check_distance = CheckBallDistance("CheckBallDistance")
+        check_distance = CheckBallDistance("CheckBallDistance", robot)
 
         self.add_children([check_distance, move2ball])
 

@@ -45,7 +45,7 @@ class OurFreekickAction(LeafNode):
     def run(self):
         for robot in self.blackboard.ally_robots:
             if robot != self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper:
-                self.commands[robot] = OurAttackerAction("name")
+                self.commands[robot] = OurAttackerAction("name", robot)
             else:
                 self.commands[robot] = TheirActionGoalKeeper()
 
@@ -59,7 +59,7 @@ class TheirFreeKickAction(LeafNode):
         
     def run(self):
         for robot in self.blackboard.ally_robots:
-            self.commands[robot] = AttackerAction("stop")
+            self.commands[robot] = AttackerAction("stop", robot)
         
         return TaskStatus.SUCCESS, self.commands
     

@@ -7,11 +7,12 @@ from strategy.skill.route import BreakStrategy, GetInAngleStrategy, NormalMoveme
 """Contains all RunningActions the robot must do (in order or not) during the match"""
 
 class MoveToBall(LeafNode):
-    def __init__(self,name):
+    def __init__(self,name, robot):
         super().__init__(name)
         self.name = "OurActionAttacker"
         self.blackboard = Blackboard()
         self.movement = GetInAngleStrategy()
+        # self.movement = NormalMovement()
         self.radius = 112 # raio do robo + raio da bola
 
         if self.blackboard.gui.is_field_side_left: 
@@ -25,6 +26,7 @@ class MoveToBall(LeafNode):
 
         self.ball_x = self.blackboard.balls[0].position_x
         self.ball_y = self.blackboard.balls[0].position_y
+        self.position_x = self.blackboard.ally_robots[robot].position_x
 
     def run(self):
         m, b = self.draw_line()
@@ -35,12 +37,20 @@ class MoveToBall(LeafNode):
         else:
             theta = math.atan(m) + math.pi 
 
-        x_d, y_d = self.search_point(theta) 
+        x_d, y_d = self.search_point(theta)
+
+        # if the robot is in front of the ball, so the wanted point must be more distance.
+        if self.blackboard.gui.is_field_side_left:
+            if self.ball_x < self.position_x:
+                x_d += 100
+        elif self.ball_x > self.position_x:
+            x_d -= 100
 
         # print(f"position x_d : {-x_d}")
         # print(f"position y_d : {-y_d}")
         # print(f"theta : {theta}")
-
+        print("Indo até a bola")
+        # Yeh, I don't know why, but if the points were positive, this doesn't work
         return TaskStatus.SUCCESS, self.movement.run(-x_d, -y_d, theta)
     
     def draw_line(self):
@@ -67,36 +77,39 @@ class MoveToBall(LeafNode):
         return x_d, y_d
 
 class CheckBallDistance(LeafNode):
-    def __init__(self, name):
+    def __init__(self, name, robot):
         super().__init__(name)
         self.blackboard = Blackboard()
         self.ball_position_x = self.blackboard.balls[0].position_x
         self.ball_position_y = self.blackboard.balls[0].position_y
-        self.position_x = self.blackboard.ally_robots[0].position_x
-        self.position_y = self.blackboard.ally_robots[0].position_y
-        self.radius = 112
+        self.position_x = self.blackboard.ally_robots[robot].position_x
+        self.position_y = self.blackboard.ally_robots[robot].position_y
+        self.radius = 120
 
     def run(self):
 
         distance = math.sqrt((self.position_x - self.ball_position_x) ** 2 + (self.position_y - self.ball_position_y) ** 2)
 
         if distance > self.radius:
-            # print(f"Estou longe da bola {distance}")
+            print(f"Estou longe da bola {distance}")
             return TaskStatus.SUCCESS, None
         else:
-            # print(f"Estou perto da bola {distance}")
+            print(f"Estou perto da bola {distance}")
             return TaskStatus.FAILURE, None
         
 
 class CheckGoalDistance(LeafNode):
-    def __init__(self, name):
+    def __init__(self, name, robot):
         super().__init__(name)
         self.blackboard = Blackboard()
-        self.goal_position_x = 2250
+        if self.blackboard.gui.is_field_side_left:
+            self.goal_position_x = 2250
+        else:
+            self.goal_position_x = -2250
         self.goal_position_y = 0
-        self.position_x = self.blackboard.ally_robots[0].position_x
-        self.position_y = self.blackboard.ally_robots[0].position_y
-        self.radius = 675 # eu acho que eh o raio da area que o nosso robo entra em modo de ataque
+        self.position_x = self.blackboard.ally_robots[robot].position_x
+        self.position_y = self.blackboard.ally_robots[robot].position_y
+        self.radius = 675 # eh o raio da area que o nosso robo deve chutar a bola
 
     def run(self):
 
@@ -112,7 +125,8 @@ class MoveToGoal(LeafNode):
         super().__init__(name)
         self.blackboard = Blackboard()
         self.goal_position_y = 0
-        self.movement = GetInAngleStrategy()
+        # self.movement = GetInAngleStrategy()
+        self.movement = NormalMovement()
         self.theta = 0
         if self.blackboard.gui.is_field_side_left:
             self.goal_position_x = 2250
@@ -120,6 +134,7 @@ class MoveToGoal(LeafNode):
             self.goal_position_x = -2250
 
     def run(self):
+        print("Indo até o gol")
         if self.blackboard.gui.is_field_side_left:
             return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.goal_position_x, self.goal_position_y, self.theta)
         else:
@@ -136,12 +151,12 @@ class ShootBall(LeafNode):
         return TaskStatus.SUCCESS, self.movement._break()
 
 class OurActionAttacker(Selector):
-    def __init__(self, name):
+    def __init__(self, name, robot_id):
         super().__init__(name, [])
 
-        move2ball = MoveToBall("MoveToBall")
-        is_near_ball = CheckBallDistance("CheckBallDistance")
-        is_near_goal = CheckGoalDistance("CheckGoalDistance")
+        move2ball = MoveToBall("MoveToBall", robot_id)
+        is_near_ball = CheckBallDistance("CheckBallDistance", robot_id)
+        is_near_goal = CheckGoalDistance("CheckGoalDistance", robot_id)
         move2goal = MoveToGoal("MoveToGoal")
         shoot_ball = ShootBall("ShootBall")
 

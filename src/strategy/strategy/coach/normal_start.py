@@ -78,7 +78,7 @@ class IsOurAttack(LeafNode):
     def run(self):
         for robot in self.blackboard.ally_robots:
             if robot != self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper:
-                self.commands[robot] = OurActionAttacker("Attack!!!")
+                self.commands[robot] = OurActionAttacker("Attack!!!", robot)
             else:
                 self.commands[robot] = OurGoalkeeperAction("name")
 
