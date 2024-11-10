@@ -8,6 +8,7 @@ from strategy.robots.penalty.our_penalty.goalkeeper import OurGoalkeeperAction
 from strategy.robots.running.attacker import OurActionAttacker
 from strategy.robots.running.defensive import OurActionDefender
 from strategy.robots.halt.defender import ActionDefender
+from strategy.coach.running.command import LastCommand
 
 class CheckZone(LeafNode):
     def __init__(self, name):
@@ -100,7 +101,8 @@ class CheckStart(LeafNode):
 class Running(Sequence):
     def __init__(self, name):
         super().__init__(name, [])
-        self.last_command = IsOurAttack("IsOurAttack")
+        self.last_command = LastCommand().get_command()
+        self.test = LastCommand().get_command()
         self.blackboard = Blackboard()    
         
         commands = ["NORMAL_START", "FORCE_START"]
@@ -119,7 +121,10 @@ class Running(Sequence):
 
         attack = Sequence("AttackSequence", [attack_zone, attack_action])
 
-        middle = Sequence("MiddleZone", [middle_zone, self.last_command])
+        if self.last_command == None:
+            middle = Sequence("MiddleZone", [middle_zone, IsOurAttack("name")])
+        else:
+            middle = Sequence("MiddleZone", [middle_zone, self.last_command])
 
         defend = Sequence("DefenseSequence", [defense_zone, defense_action])
            
@@ -131,15 +136,20 @@ class Running(Sequence):
     def run(self):
         
         command = super().run()
-        dict = command[1] 
-        if dict != None:
-            if self.blackboard.referee.teams != []:
-                goalkeeper_id = self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper
-                if dict[goalkeeper_id] != OurActionAttacker("Attack!!!!"):
-                    self.last_command = IsOurDefense("IsOurDefense")
-                else:
-                    self.last_command = IsOurAttack("IsOurAttack")
+        dict = command[1]
+        robot_id = 0
+        if self.blackboard.referee.teams != []:
+            for robot in self.blackboard.ally_robots:
+                if self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper != robot:
+                    robot_id = robot
 
+        if dict != None:
+            if isinstance(dict[robot_id], OurActionAttacker):
+                self.last_command = IsOurAttack("IsOurAttack")
+                LastCommand().set_command(self.last_command)
+            else:
+                self.last_command = IsOurDefense("IsOurDefense")
+                LastCommand().set_command(self.last_command)
         return command
 
 

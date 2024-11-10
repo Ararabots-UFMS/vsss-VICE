@@ -81,10 +81,10 @@ class CheckBallDistance(LeafNode):
         distance = math.sqrt((self.position_x - self.ball_position_x) ** 2 + (self.position_y - self.ball_position_y) ** 2)
 
         if distance > self.radius:
-            print(f"Estou longe da bola {distance}")
+            # print(f"Estou longe da bola {distance}")
             return TaskStatus.SUCCESS, None
         else:
-            print(f"Estou perto da bola {distance}")
+            # print(f"Estou perto da bola {distance}")
             return TaskStatus.FAILURE, None
         
 
@@ -154,17 +154,3 @@ class OurActionAttacker(Selector):
 
     def __call__(self):
         return super().run()[1]
-
-
-# class TheirActionAttacker():
-#     def __init__(self):
-#         self.name = "TheirActionAttacker"
-#         self.blackboard = Blackboard()
-
-#     def __call__(self):
-#         self.movement = NormalMovement()
-#         return self.movement.outsideCenterCircle()
-        
-#     def run(self):
-#         self.movement = NormalMovement()
-#         return self.movement.outsideCenterCircle()
