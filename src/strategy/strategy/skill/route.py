@@ -213,6 +213,13 @@ class GetInAngleStrategy():
                 "path_kwargs" : {"goal_state" : (p_x,p_y),"theta" : theta},
                 "orientation_kwargs" : {"theta" : theta}}
     
+    def moveToBall(self, p_x, p_y, theta):
+        return {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry)],
+                "path_profile" : MovementProfiles.GetInAngle,
+                "orientation_profile": DirectionProfiles.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (p_x,p_y),"theta" : theta},
+                "orientation_kwargs" : {"theta" : theta}}
 
 class BreakStrategy():
     """"This class have the BreakProfile movement"""

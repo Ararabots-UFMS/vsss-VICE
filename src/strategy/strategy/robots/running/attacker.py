@@ -29,13 +29,7 @@ class MoveToBall(LeafNode):
         self.position_x = self.blackboard.ally_robots[robot].position_x
 
     def run(self):
-        m, b = self.draw_line()
-
-        #Huge mamaco, refactor this
-        if self.blackboard.gui.is_field_side_left:
-            theta = math.atan(m)
-        else:
-            theta = math.atan(m) + math.pi 
+        theta = self.draw_line()
 
         x_d, y_d = self.search_point(theta)
 
@@ -51,7 +45,7 @@ class MoveToBall(LeafNode):
         # print(f"theta : {theta}")
         print("Indo até a bola")
         # Yeh, I don't know why, but if the points were positive, this doesn't work
-        return TaskStatus.SUCCESS, self.movement.run(-x_d, -y_d, theta)
+        return TaskStatus.SUCCESS, self.movement.moveToBall(-x_d, -y_d, theta)
     
     def draw_line(self):
 
@@ -62,7 +56,13 @@ class MoveToBall(LeafNode):
         m = (-self.ball_y)/(self.goal_field.x1 - self.ball_x)
         b = self.ball_y - m * self.ball_x
 
-        return m, b
+        #Huge mamaco, refactor this
+        if self.blackboard.gui.is_field_side_left:
+            theta = math.atan2((-self.ball_y), (self.goal_field.x1 - self.ball_x))
+        else:
+            theta = math.atan2((-self.ball_y), (self.goal_field.x1 - self.ball_x)) + math.pi 
+
+        return theta
     
     def search_point(self, theta):
         ball_x = self.blackboard.balls[0].position_x
@@ -106,6 +106,7 @@ class CheckGoalDistance(LeafNode):
             self.goal_position_x = 2250
         else:
             self.goal_position_x = -2250
+
         self.goal_position_y = 0
         self.position_x = self.blackboard.ally_robots[robot].position_x
         self.position_y = self.blackboard.ally_robots[robot].position_y
@@ -128,10 +129,12 @@ class MoveToGoal(LeafNode):
         # self.movement = GetInAngleStrategy()
         self.movement = NormalMovement()
         self.theta = 0
+
+        #trocar para field lines dps
         if self.blackboard.gui.is_field_side_left:
-            self.goal_position_x = 2250
+            self.goal_position_x = 2250 - 450 # linha do gol em x - padding de 450 
         else:
-            self.goal_position_x = -2250
+            self.goal_position_x = -2250 + 450 # linha do gol em x + padding de 450 
 
     def run(self):
         print("Indo até o gol")
