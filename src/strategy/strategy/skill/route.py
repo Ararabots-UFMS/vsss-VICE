@@ -27,6 +27,14 @@ class NormalMovement():
 
 
     def move_to_position_with_orientation(self, p_x, p_y, theta):
+        return {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry)],
+                "path_profile" : MovementProfiles.Normal,
+                "orientation_profile": DirectionProfiles.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (p_x,p_y)},
+                "orientation_kwargs" : {"theta" : theta}}
+    
+    def move_to_position_with_orientation_no_obstacle(self, p_x, p_y, theta):
         return {"obstacles" : [],
                 "path_profile" : MovementProfiles.Normal,
                 "orientation_profile": DirectionProfiles.Aim,

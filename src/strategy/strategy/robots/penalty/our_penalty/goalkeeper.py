@@ -45,15 +45,19 @@ class DefensePosition(LeafNode):
         distance_ball_goal = self.calculate_distance_to_ball_goal()
 
         if self.check_for_ball_in_defense_area(): 
-            return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(self.ball.position_x, self.ball.position_y, theta)
+            return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation_no_obstacle(self.ball.position_x, self.ball.position_y, theta)
         else:
-            return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(self.goal_x, self.goal_y, theta)
+            return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation_no_obstacle(self.goal_x, self.goal_y, theta)
 
 
     def check_for_ball_in_defense_area(self):
 
         if self.penalty_area.is_colission([self.ball.position_x, self.ball.position_y]):
-            return True
+            # We need to know wich side of field the ball had collission
+            if self.blackboard.gui.is_field_side_left == True and self.blackboard.balls[0].position_x < 0:
+                return True
+            elif self.blackboard.gui.is_field_side_left == False and self.blackboard.balls[0].position_x > 0:
+                return True
         
         return False
 

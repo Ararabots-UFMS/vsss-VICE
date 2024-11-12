@@ -1,5 +1,6 @@
 
 import math
+from movement.obstacles.static_obstacles import PenaltyAreaObstacles
 from strategy.behaviour import LeafNode, Selector, TaskStatus
 from strategy.blackboard import Blackboard
 from strategy.skill.route import BreakStrategy, GetInAngleStrategy
@@ -100,17 +101,26 @@ class DefensivePlay():
         self.assignments = {}
 
     def run(self):
+        penalty = PenaltyAreaObstacles(self.blackboard.geometry)
+        ball = self.blackboard.balls[0] #ball[0].position_x and ball[0].position_y
+        ball_position = [ball.position_x, ball.position_y]
+        if penalty.is_colission(ball_position):
+            need_padding = False
+        else:
+            need_padding = True
+
         self.points = GetPoints().run()
         self.distance_p2r()
-        self.calculate_wanted_points()
+        self.calculate_wanted_points(need_padding)
         self.distribute_points()
         return self.assignments
     
     """Calculate the points outside the penalty area line that the robots need to go"""
     #TODO this approach need to be refact in the future
-    def calculate_wanted_points(self):
+    def calculate_wanted_points(self, need_padding):
         adjusted_points = []
-        self.padding = 100
+        self.padding = 110
+        
 
         # New approach: adjust points outside the penalty area line
         left_point = list(self.points[0])
@@ -126,19 +136,35 @@ class DefensivePlay():
             left_point[0] += self.padding*self.mult
             right_point[0] += self.padding*self.mult
             if self.blackboard.gui.is_field_side_left:
-                if left_point[1] > right_point[1]:
-                    left_point[1] -= self.padding*self.mult
-                    right_point[1] += self.padding*self.mult
+                if need_padding:
+                    if left_point[1] > right_point[1]:
+                        left_point[1] -= self.padding*self.mult
+                        right_point[1] += self.padding*self.mult
+                    else:
+                        left_point[1] += self.padding*self.mult
+                        right_point[1] -= self.padding*self.mult
                 else:
-                    left_point[1] += self.padding*self.mult
-                    right_point[1] -= self.padding*self.mult
+                    if left_point[1] > right_point[1]:
+                        left_point[1] += self.padding*self.mult
+                        right_point[1] -= self.padding*self.mult
+                    else:
+                        left_point[1] -= self.padding*self.mult
+                        right_point[1] += self.padding*self.mult
             else:
-                if left_point[1] > right_point[1]:
-                    left_point[1] += self.padding*self.mult
-                    right_point[1] -= self.padding*self.mult
+                if need_padding:
+                    if left_point[1] > right_point[1]:
+                        left_point[1] += self.padding*self.mult
+                        right_point[1] -= self.padding*self.mult
+                    else:
+                        left_point[1] -= self.padding*self.mult
+                        right_point[1] += self.padding*self.mult
                 else:
-                    left_point[1] -= self.padding*self.mult
-                    right_point[1] += self.padding*self.mult
+                    if left_point[1] > right_point[1]:
+                        left_point[1] -= self.padding*self.mult
+                        right_point[1] += self.padding*self.mult
+                    else:
+                        left_point[1] += self.padding*self.mult
+                        right_point[1] -= self.padding*self.mult
 
             adjusted_points.append(tuple(left_point))
             adjusted_points.append(tuple(right_point))
@@ -146,7 +172,7 @@ class DefensivePlay():
         
         # Vertical alignment
         elif left_point[1] == right_point[1]:
-            if self.blackboard.gui.is_field_side_left:  
+            if self.blackboard.gui.is_field_side_left:
                 if left_point[1] > 0:
                     left_point[1] += self.padding*self.mult
                     right_point[1] += self.padding*self.mult
@@ -161,19 +187,36 @@ class DefensivePlay():
                     left_point[1] += self.padding*self.mult
                     right_point[1] += self.padding*self.mult
             if self.blackboard.gui.is_field_side_left:
-                if left_point[0] > right_point[0]:
-                    left_point[0] -= self.padding*self.mult
-                    right_point[0] += self.padding*self.mult
+                if need_padding:
+                    if left_point[0] > right_point[0]:
+                        left_point[0] -= self.padding*self.mult
+                        right_point[0] += self.padding*self.mult
+                    else:
+                        left_point[0] += self.padding*self.mult
+                        right_point[0] -= self.padding*self.mult
                 else:
-                    left_point[0] += self.padding*self.mult
-                    right_point[0] -= self.padding*self.mult
+                    if left_point[0] > right_point[0]:
+                        left_point[0] += self.padding*self.mult
+                        right_point[0] -= self.padding*self.mult
+                    else:
+                        left_point[0] -= self.padding*self.mult
+                        right_point[0] += self.padding*self.mult
             else:
-                if left_point[0] > right_point[0]:
-                    left_point[0] += self.padding*self.mult
-                    right_point[0] -= self.padding*self.mult
+                if need_padding:
+                    if left_point[0] > right_point[0]:
+                        left_point[0] += self.padding*self.mult
+                        right_point[0] -= self.padding*self.mult
+                    else:
+                        left_point[0] -= self.padding*self.mult
+                        right_point[0] += self.padding*self.mult
                 else:
-                    left_point[0] -= self.padding*self.mult
-                    right_point[0] += self.padding*self.mult
+                    if left_point[0] > right_point[0]:
+                        left_point[0] -= self.padding*self.mult
+                        right_point[0] += self.padding*self.mult
+                    else:
+                        left_point[0] += self.padding*self.mult
+                        right_point[0] -= self.padding*self.mult
+                
             adjusted_points.append(tuple(left_point))
             adjusted_points.append(tuple(right_point))
 
@@ -213,7 +256,6 @@ class DefensivePlay():
     """Distribute the position to each defender choosing the most close to point"""
     def distribute_points(self):
         assigned_points = set()  # Track points already assigned
-        self.assignments = {}  # Reset assignments for each robot
 
         # Sort robots by their minimum distance to points
         sorted_robots = sorted(
@@ -237,8 +279,6 @@ class DefensivePlay():
             if closest_point is not None:
                 self.assignments[robot] = self.points[closest_point]
                 assigned_points.add(closest_point)  # Mark this point as assigned
-
-                
 
 
         
