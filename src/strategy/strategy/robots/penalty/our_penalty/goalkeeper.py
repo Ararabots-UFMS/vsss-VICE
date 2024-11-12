@@ -2,6 +2,8 @@ import math
 from strategy.behaviour import LeafNode, Selector, TaskStatus
 from strategy.blackboard import Blackboard
 from strategy.skill.route import BreakStrategy, GetInAngleStrategy, NormalMovement
+from movement.obstacles.static_obstacles import PenaltyAreaObstacles
+
 
 class DefensePosition(LeafNode):
     def __init__(self, name):
@@ -12,6 +14,7 @@ class DefensePosition(LeafNode):
         self.minimal_distance = 300
         self.padding = 150
         self.goal_y = None
+        self.penalty_area = PenaltyAreaObstacles(self.blackboard.geometry)
 
         # Goal bounds. Do not have on blackboard yet 
         self.goal_bound_y1 = 350 #  Top limit of the goal
@@ -41,17 +44,18 @@ class DefensePosition(LeafNode):
 
         distance_ball_goal = self.calculate_distance_to_ball_goal()
 
-        # print(f"Distance to ball goal : {distance_ball_goal}")
-        # print(f"Distance to enemy : {enemy_distance}")
-
-        # print(f"Goal x : {self.goal_x}")
-        # print(f"Goal y : {self.goal_y}")
-        # print("theta : ", theta)
-
-        if enemy_distance < self.minimal_distance and distance_ball_goal < self.minimal_distance:
+        if self.check_for_ball_in_defense_area(): 
             return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(self.ball.position_x, self.ball.position_y, theta)
         else:
             return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(self.goal_x, self.goal_y, theta)
+
+
+    def check_for_ball_in_defense_area(self):
+
+        if self.penalty_area.is_colission([self.ball.position_x, self.ball.position_y]):
+            return True
+        
+        return False
 
     def calculate_distance_to_ball_goal(self):
         return math.sqrt((self.ball.position_x - self.penalty_stretch_x) ** 2 + (self.ball.position_y) ** 2)
@@ -123,12 +127,10 @@ class CheckBallDistance(LeafNode):
             return TaskStatus.FAILURE, self.movement._break()
         
 
-
 class OurGoalkeeperAction(Selector):
     def __init__(self, name):
         super().__init__(name, [])
         self.blackboard = Blackboard()
-        # is_near_ball = CheckBallDistance("CheckBallDistance")
         defensive_mode = DefensePosition("DefensivePosition")
         self.add_children([defensive_mode])
     
