@@ -26,6 +26,8 @@ class CheckIfOurKickoff(LeafNode):
     def run(self):
         success = False
 
+        # print(f"color team: {self.blackboard.gui.is_team_color_yellow}")
+        # print(f"referee command : {self.blackboard.referee.command}")
         if (self.blackboard.gui.is_team_color_yellow == True) and (self.blackboard.referee.command == "PREPARE_KICKOFF_YELLOW"):
             success = True
         elif (self.blackboard.gui.is_team_color_yellow == False) and (self.blackboard.referee.command == "PREPARE_KICKOFF_BLUE"):

@@ -30,6 +30,7 @@ class CommandPublisher(Node):
         msg = TeamCommand()
 
         msg.is_team_color_yellow = self.coach.blackboard.gui.is_team_color_yellow
+        # msg.is_team_color_yellow = True
 
         current_time = time()
         for robot in self.coach.robots.values():

@@ -25,8 +25,8 @@ class TopicSubscriber(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = TopicSubscriber("vision_subs1", VisionMessage, "visionTopic")
-    # node = TopicSubscriber('gui_subs', GUIMessage, 'guiTopic')
-    # node = TopicSubscriber('referee_subs', RefereeMessage, '/referee_messages')
+    node = TopicSubscriber('gui_subs', GUIMessage, 'guiTopic')
+    node = TopicSubscriber('referee_subs', RefereeMessage, '/referee_messages')
     while True:
         rclpy.spin_once(node)
         print(node.get_message())

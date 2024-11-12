@@ -49,8 +49,6 @@ class Blackboard(metaclass=SingletonMeta):
         self.referee = RefereeMessage()
         self.geometry = VisionGeometry()
 
-        # TODO: Remove this line
-        self.gui.is_team_color_yellow = True
 
     def update_from_vision_message(self, message):
         if message is None:
