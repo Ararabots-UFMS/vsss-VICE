@@ -37,12 +37,10 @@ class DefensePosition(LeafNode):
 
     def run(self):
         
-        enemy_distance, enemy_id = self.closest_enemy_with_ball()
+        enemy_id = self.closest_enemy_with_ball()
 
         m, b, theta = self.draw_line(enemy_id)
         self.find_point_in_goal(m, b)
-
-        distance_ball_goal = self.calculate_distance_to_ball_goal()
 
         if self.check_for_ball_in_defense_area(): 
             return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation_no_obstacle(self.ball.position_x, self.ball.position_y, theta)
@@ -54,9 +52,9 @@ class DefensePosition(LeafNode):
 
         if self.penalty_area.is_colission([self.ball.position_x, self.ball.position_y]):
             # We need to know wich side of field the ball had collission
-            if self.blackboard.gui.is_field_side_left == True and self.blackboard.balls[0].position_x < 0:
+            if self.blackboard.gui.is_field_side_left and self.blackboard.balls[0].position_x < 0:
                 return True
-            elif self.blackboard.gui.is_field_side_left == False and self.blackboard.balls[0].position_x > 0:
+            elif not self.blackboard.gui.is_field_side_left  and self.blackboard.balls[0].position_x > 0:
                 return True
         
         return False
@@ -84,7 +82,7 @@ class DefensePosition(LeafNode):
 
         m = (self.robot_y - self.ball.position_y) / (self.robot_x - self.ball.position_x)
         b = self.ball.position_y - m * self.ball.position_x
-
+        
         theta = math.atan2(self.robot_y - self.ball.position_y, self.robot_x - self.ball.position_x)
 
         return m, b, theta 
@@ -99,7 +97,7 @@ class DefensePosition(LeafNode):
                 distance = enemy_distance
                 enemy_id = enemy
         
-        return distance, enemy_id
+        return enemy_id
     
 # TODO : Check if the robot is near the ball
 class CheckBallDistance(LeafNode):
