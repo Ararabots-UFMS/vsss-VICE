@@ -3,7 +3,7 @@ from strategy.blackboard import Blackboard
 from strategy.behaviour import LeafNode, Sequence, Selector
 from strategy.behaviour import TaskStatus
 from strategy.robots.freekick.our_free_kick.attacker import OurAttackerAction, TheirAttackerAction
-from strategy.robots.kickoff.our_kick_off.goalkeeper import TheirActionGoalKeeper
+from strategy.robots.kickoff.goalkeeper import TheirActionGoalKeeper
 from strategy.robots.stop.attacker import AttackerAction
 
 class CheckState(LeafNode):
