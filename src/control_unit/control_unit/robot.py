@@ -144,11 +144,15 @@ class Robot(Node):
 
     def get_state(self, from_vision = True):
         ''' Retuns robots position from blackboard '''
+        
         if from_vision:
-            robot = self.blackboard.ally_robots[self.id]
+            try:
+                robot = self.blackboard.ally_robots[self.id]
 
-            return (np.array([robot.position_x, robot.position_y, robot.orientation]),
-                np.array([robot.velocity_x, robot.velocity_y, robot.velocity_orientation]))
+                return (np.array([robot.position_x, robot.position_y, robot.orientation]),
+                    np.array([robot.velocity_x, robot.velocity_y, robot.velocity_orientation]))
+            except:
+                pass
 
         state = self.path_trajectory.at_time(self.get_relative_time())[:2]
         ostate = self.orientation_trajectory.at_time(self.get_relative_time())[:2]

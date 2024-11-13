@@ -3,8 +3,8 @@ from strategy.blackboard import Blackboard
 from strategy.behaviour import LeafNode, Sequence, Selector
 from strategy.behaviour import TaskStatus
 from strategy.robots.freekick.our_free_kick.goalkeeper import OurActionGoalKeeper
-from strategy.robots.kickoff.our_kick_off.attacker import OurActionAttacker, TheirActionAttacker
-from strategy.robots.kickoff.our_kick_off.goalkeeper import TheirActionGoalKeeper
+from strategy.robots.kickoff.attacker import OurActionAttacker, TheirActionAttacker
+from strategy.robots.kickoff.goalkeeper import TheirActionGoalKeeper
 
 class CheckState(LeafNode):
     def __init__(self, name, _desired_states):
