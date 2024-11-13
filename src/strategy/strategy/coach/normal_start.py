@@ -4,7 +4,6 @@ from strategy.blackboard import Blackboard
 from strategy.behaviour import LeafNode, Sequence, Selector
 from strategy.behaviour import TaskStatus
 from strategy.coach.running.Defense_play import DefensivePlay
-from strategy.robots.halt.attacker import ActionAttacker
 from strategy.robots.penalty.our_penalty.goalkeeper import OurGoalkeeperAction
 from strategy.robots.running.attacker import OurActionAttacker
 from strategy.robots.running.defensive import OurActionDefender
@@ -59,13 +58,19 @@ class IsOurDefense(LeafNode):
 
     def run(self):
         self.points = DefensivePlay().run()
-        for robot in self.blackboard.ally_robots:
+        """for robot in self.blackboard.ally_robots:
             if robot != self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper:
                 if robot in self.points and self.points[robot] is not None:
                     self.commands[robot] = OurActionDefender("Defend!!!", self.points[robot], robot)
             else:
                 self.commands[robot] = OurGoalkeeperAction("name")
 
+
+        return TaskStatus.SUCCESS, self.commands"""
+
+        #Estrategia unificada:
+        for robot in self.blackboard.ally_robots:
+            self.commands[robot] = OurGoalkeeperAction("name")
 
         return TaskStatus.SUCCESS, self.commands
         
@@ -77,11 +82,17 @@ class IsOurAttack(LeafNode):
         self.commands = {}
 
     def run(self):
-        for robot in self.blackboard.ally_robots:
+        """for robot in self.blackboard.ally_robots:
             if robot != self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper:
                 self.commands[robot] = OurActionAttacker("Attack!!!", robot)
             else:
                 self.commands[robot] = OurGoalkeeperAction("name")
+
+        return TaskStatus.SUCCESS, self.commands"""
+
+        #Estrategia unificada:
+        for robot in self.blackboard.ally_robots:
+            self.commands[robot] = OurActionAttacker("Attack!", robot)
 
         return TaskStatus.SUCCESS, self.commands
     
@@ -93,16 +104,10 @@ class CheckStart(LeafNode):
         self.commands = commands
 
     def run(self):
-        print(self.blackboard.can_i_start)
-        if self.blackboard.can_i_start:
-            if self.blackboard.referee.command in self.commands:
-                return TaskStatus.SUCCESS, None
-        elif (not self.blackboard.gui.is_team_color_yellow) and (self.blackboard.referee_last_command.command == "PREPARE_KICKOFF_BLUE"):
-            if self.blackboard.referee.command in self.commands:
-                return TaskStatus.SUCCESS, None
-        print("Falhei")
+        if self.blackboard.referee.command in self.commands:
+            return TaskStatus.SUCCESS, None
+        
         return TaskStatus.FAILURE, None
-        # return TaskStatus.FAILURE, ActionAttacker()
 
 
 class Running(Sequence):

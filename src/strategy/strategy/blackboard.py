@@ -78,4 +78,7 @@ class Blackboard(metaclass=SingletonMeta):
         self.referee.command = message
     
     def update_referee_start(self):
-        self.can_i_start = not self.can_i_start
+        self.can_i_start = True
+    
+    def update_referee_not_start(self):
+        self.can_i_start = False

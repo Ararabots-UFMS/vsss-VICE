@@ -46,22 +46,26 @@ class MoveToCircle(LeafNode):
         self.movement = NormalMovement()
 
     def run(self):
+        print("Movendo para o centro do campo")
         return TaskStatus.SUCCESS, self.movement.outsideCenterCircle()
     
-class BallMovement(LeafNode):
-    def __init__(self, name):
-        super().__init__(name)
-        self.blackboard = Blackboard()
-        self.movement = BreakStrategy()
-        self.ball_vx = self.blackboard.balls[0].velocity_x
-        self.ball_vy = self.blackboard.balls[0].velocity_y
+# class BallMovement(LeafNode):
+#     def __init__(self, name):
+#         super().__init__(name)
+#         self.blackboard = Blackboard()
+#         self.movement = BreakStrategy()
+#         self.ball_vx = self.blackboard.balls[0].velocity_x
+#         self.ball_vy = self.blackboard.balls[0].velocity_y
     
-    def run(self):
-        if round(abs(self.ball_vx)) != 1 or round(abs(self.ball_vy)) != 1:
-            Blackboard().update_referee_start()
-            return TaskStatus.SUCCESS, self.movement._break()
+#     def run(self):
+#         print("Checando o movimento da bola")
+#         if round(abs(self.ball_vx)) != 1 or round(abs(self.ball_vy)) != 1:
+#             Blackboard().update_referee_start()
+#             print("Bola está em movimento")
+#             return TaskStatus.SUCCESS, self.movement._break()
         
-        return TaskStatus.FAILURE, None
+#         print("Bola está parada")
+#         return TaskStatus.FAILURE, None
     
 
 class TheirActionAttacker(Selector):
@@ -74,11 +78,11 @@ class TheirActionAttacker(Selector):
         move2circle = MoveToCircle("MoveToCircle")
         check_position = CheckPosition("CheckPosition", self.robot_id)
 
-        check_ball_movement = BallMovement("BallMovement")
+        # check_ball_movement = BallMovement("BallMovement")
 
         move2position = Sequence("MoveToPosition", [check_position,move2circle])
 
-        self.add_children([check_ball_movement, move2position])
+        self.add_children([move2position])
 
     def __call__(self, **kwds):
         self.movement = NormalMovement()

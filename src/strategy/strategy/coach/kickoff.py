@@ -3,8 +3,8 @@ from strategy.blackboard import Blackboard
 from strategy.behaviour import LeafNode, Sequence, Selector
 from strategy.behaviour import TaskStatus
 from strategy.robots.freekick.our_free_kick.goalkeeper import OurActionGoalKeeper
-from strategy.robots.kickoff.attacker import OurActionAttacker, TheirActionAttacker
-from strategy.robots.kickoff.goalkeeper import TheirActionGoalKeeper
+from strategy.robots.kickoff.our_kick_off.attacker import OurActionAttacker, TheirActionAttacker
+from strategy.robots.kickoff.our_kick_off.goalkeeper import TheirActionGoalKeeper
 
 class CheckState(LeafNode):
     def __init__(self, name, _desired_states):
@@ -22,13 +22,9 @@ class CheckIfOurKickoff(LeafNode):
     def __init__(self, name):
         super().__init__(name)
         self.blackboard = Blackboard()
-        self.ball_vx = self.blackboard.balls[0].velocity_x
-        self.ball_vy = self.blackboard.balls[0].velocity_y
 
     def run(self):
-        # success = False
-        # if round(abs(self.ball_vx)) != 1 or round(abs(self.ball_vy)) != 1:
-        #     Blackboard().update_referee_start()
+        success = False
 
         # print(f"color team: {self.blackboard.gui.is_team_color_yellow}")
         # print(f"referee command : {self.blackboard.referee.command}")
@@ -49,13 +45,16 @@ class OurKickoffAction(LeafNode):
         self.commands = {}
         
     def run(self):
-        for robot in self.blackboard.ally_robots:
+        """for robot in self.blackboard.ally_robots:
             if robot != self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper:
                 self.commands[robot] = OurActionAttacker()
             else:
                 self.commands[robot] = OurActionGoalKeeper()
 
-        return TaskStatus.SUCCESS, self.commands
+        return TaskStatus.SUCCESS, self.commands"""
+
+        #Estrategia unificada:
+        return TaskStatus.SUCCESS, OurActionAttacker()
     
 class TheirKickoffAction(LeafNode):
     def __init__(self, name):
@@ -64,13 +63,16 @@ class TheirKickoffAction(LeafNode):
         self.commands = {}
         
     def run(self):
-        for robot in self.blackboard.ally_robots:
+        """for robot in self.blackboard.ally_robots:
             if robot != self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper:
-                self.commands[robot] = TheirActionAttacker("name", robot)
+                self.commands[robot] = TheirActionAttacker()
             else:
                 self.commands[robot] = TheirActionGoalKeeper()
 
-        return TaskStatus.SUCCESS, self.commands
+        return TaskStatus.SUCCESS, self.commands"""
+
+        #Estrategia unificada:
+        return TaskStatus.SUCCESS, TheirActionGoalKeeper()
     
 class Kickoff(Sequence):
     def __init__(self, name):

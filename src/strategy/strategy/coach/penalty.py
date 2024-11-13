@@ -1,7 +1,7 @@
 
 from strategy.behaviour import LeafNode, Selector, Sequence, TaskStatus
 from strategy.blackboard import Blackboard
-from strategy.robots.kickoff.goalkeeper import TheirActionGoalKeeper
+from strategy.robots.kickoff.our_kick_off.goalkeeper import TheirActionGoalKeeper
 from strategy.robots.penalty.our_penalty.attacker import OurActionAttacker, TheirActionAttacker
 
 
@@ -42,13 +42,19 @@ class OurPenaltyAction(LeafNode):
         self.commands = {}
 
     def run(self):
-        for robot in self.blackboard.ally_robots:
+        """for robot in self.blackboard.ally_robots:
             if robot != self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper:
                 self.commands[robot] = OurActionAttacker()
             else:
                 self.commands[robot] = TheirActionGoalKeeper()
 
-        return TaskStatus.SUCCESS, self.commands
+        return TaskStatus.SUCCESS, self.commands"""
+
+        #Estrategia unificada:
+        for robot in self.blackboard.ally_robots:
+                self.commands[robot] = OurActionAttacker()
+
+        return TaskStatus.SUCCESS, self.commands 
     
 class TheirPenaltyAction(LeafNode):
     def __init__(self, name):
@@ -57,12 +63,18 @@ class TheirPenaltyAction(LeafNode):
         self.commands = {}
 
     def run(self):
-        for robot in self.blackboard.ally_robots:
+        """for robot in self.blackboard.ally_robots:
             if robot != self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper:
                 self.commands[robot] = TheirActionAttacker()
             else:
                 self.commands[robot] = TheirActionGoalKeeper()
 
+        return TaskStatus.SUCCESS, self.commands"""
+
+        #Estrategia unificada:
+        for robot in self.blackboard.ally_robots:
+            self.commands[robot] = TheirActionGoalKeeper()
+        
         return TaskStatus.SUCCESS, self.commands
     
 class Penalty(Sequence):
