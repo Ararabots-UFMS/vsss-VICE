@@ -4,6 +4,7 @@ from strategy.blackboard import Blackboard
 from strategy.behaviour import LeafNode, Sequence, Selector
 from strategy.behaviour import TaskStatus
 from strategy.coach.running.Defense_play import DefensivePlay
+from strategy.robots.halt.attacker import ActionAttacker
 from strategy.robots.penalty.our_penalty.goalkeeper import OurGoalkeeperAction
 from strategy.robots.running.attacker import OurActionAttacker
 from strategy.robots.running.defensive import OurActionDefender
@@ -92,10 +93,16 @@ class CheckStart(LeafNode):
         self.commands = commands
 
     def run(self):
-        if self.blackboard.referee.command in self.commands:
-            return TaskStatus.SUCCESS, None
-        
+        print(self.blackboard.can_i_start)
+        if self.blackboard.can_i_start:
+            if self.blackboard.referee.command in self.commands:
+                return TaskStatus.SUCCESS, None
+        elif (not self.blackboard.gui.is_team_color_yellow) and (self.blackboard.referee_last_command.command == "PREPARE_KICKOFF_BLUE"):
+            if self.blackboard.referee.command in self.commands:
+                return TaskStatus.SUCCESS, None
+        print("Falhei")
         return TaskStatus.FAILURE, None
+        # return TaskStatus.FAILURE, ActionAttacker()
 
 
 class Running(Sequence):

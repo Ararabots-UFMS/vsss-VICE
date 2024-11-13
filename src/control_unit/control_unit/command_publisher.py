@@ -52,6 +52,7 @@ class CommandPublisher(Node):
             command.linear_velocity_x = vel_norm
             command.linear_velocity_y = vel_tan
             command.angular_velocity = float(velocities[2])
+            command.kick = robot.kick*1.5 #1.5 m/s is our kick speed
             msg.robots.append(command)
 
         self.publisher.publish(msg)

@@ -44,22 +44,23 @@ class CheckBallDistance(LeafNode):
             return TaskStatus.SUCCESS, None
 
 class CheckForEnemies(LeafNode):
-    def __init__(self, name, point, robot_id):
+    def __init__(self, name):
+        super().__init__(name)
         self.blackboard = Blackboard()
         self.movement = NormalMovement()
         self.ball_position_x = self.blackboard.balls[0].position_x
         self.ball_position_y = self.blackboard.balls[0].position_y
-        if self.blackboard.gui._is_field_side_left:
-            theta = 0
-        else:
-            theta = math.pi
+        self.goal_position_x = 2250
+        self.goal_position_y = 0
+        self.theta = 0
+
 
     def run(self):
 
         for enemy in self.blackboard.enemy_robots:
-            distance = math.sqrt((self.enemy_robot[enemy].position_x - self.ball_position_x) ** 2 + (self.enemy_robot[enemy].position_y - self.ball_position_y) ** 2)
+            distance = math.sqrt((self.blackboard.enemy_robots[enemy].position_x - self.ball_position_x) ** 2 + (self.blackboard.enemy_robots[enemy].position_y - self.ball_position_y) ** 2)
             if distance <= 100:
-                return TaskStatus.SUCCESS, self.movement.move2point(self, 0, self.ball_position_y)
+                return TaskStatus.SUCCESS, self.movement.move2point(0, self.ball_position_y)
         
         return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.goal_position_x, self.goal_position_y, self.theta)
 
@@ -69,8 +70,8 @@ class OurActionDefender(Selector):
         self.blackboard = Blackboard()
         self.point = points
         is_near_ball = CheckBallDistance("CheckBallDistance", self.point, robot_id)
-        is_there_enemies = CheckForEnemies
-        react_to_ball = Sequence("TurnToAttack", [is_near_ball, is_there_enemies]) 
+        is_there_enemies = CheckForEnemies("CheckForEnemies")
+        react_to_ball = Sequence("ReactBall", [is_near_ball, is_there_enemies]) 
         defensive_mode = DefensePosition("DefensivePosition", self.point)
         self.add_children([react_to_ball, defensive_mode])
     

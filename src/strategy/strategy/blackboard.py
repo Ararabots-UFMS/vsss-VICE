@@ -47,6 +47,8 @@ class Blackboard(metaclass=SingletonMeta):
         self.balls = {}
         self.gui = GUIMessage()
         self.referee = RefereeMessage()
+        self.referee_last_command = RefereeMessage()
+        self.can_i_start = False
         self.geometry = VisionGeometry()
 
 
@@ -63,6 +65,7 @@ class Blackboard(metaclass=SingletonMeta):
         self.balls = message.balls
 
     def update_from_gamecontroller_message(self, message: RefereeMessage):
+        self.referee_last_command = self.referee
         self.referee = message
 
     def update_from_gui_message(self, message: GUIMessage):
@@ -70,3 +73,9 @@ class Blackboard(metaclass=SingletonMeta):
 
     def update_from_geometry(self, message: VisionGeometry):
         self.geometry = message
+
+    def update_referee_no_command(self, message):
+        self.referee.command = message
+    
+    def update_referee_start(self):
+        self.can_i_start = not self.can_i_start

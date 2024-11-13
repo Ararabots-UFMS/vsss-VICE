@@ -22,9 +22,13 @@ class CheckIfOurKickoff(LeafNode):
     def __init__(self, name):
         super().__init__(name)
         self.blackboard = Blackboard()
+        self.ball_vx = self.blackboard.balls[0].velocity_x
+        self.ball_vy = self.blackboard.balls[0].velocity_y
 
     def run(self):
-        success = False
+        # success = False
+        # if round(abs(self.ball_vx)) != 1 or round(abs(self.ball_vy)) != 1:
+        #     Blackboard().update_referee_start()
 
         # print(f"color team: {self.blackboard.gui.is_team_color_yellow}")
         # print(f"referee command : {self.blackboard.referee.command}")
@@ -62,7 +66,7 @@ class TheirKickoffAction(LeafNode):
     def run(self):
         for robot in self.blackboard.ally_robots:
             if robot != self.blackboard.referee.teams[self.blackboard.gui.is_team_color_yellow].goalkeeper:
-                self.commands[robot] = TheirActionAttacker()
+                self.commands[robot] = TheirActionAttacker("name", robot)
             else:
                 self.commands[robot] = TheirActionGoalKeeper()
 

@@ -62,6 +62,9 @@ class Coach(Node):
         # The code below just create a simple behaviour tree which is available in strategy
         status, strategy = CoachStrategy("CoachStrategy").run()
         # print(strategy)
+        # print(f"Last Command : {self.blackboard.referee_last_command}")
+        # print(f"Current Command : {self.blackboard.referee}")
+        
         for robot in list(self.robots.values()):
             if strategy != None:
                 self.robots[robot.id].behaviour = strategy[robot.id]

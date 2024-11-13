@@ -36,6 +36,8 @@ class Robot(Node):
         self.id = id
         self.name = name
 
+        self.kick = False
+
         self.blackboard = Blackboard()
         self.behaviour = None
 
