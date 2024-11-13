@@ -38,3 +38,7 @@ def apply_inverse_kinematics(vx, vy, theta):
     wheels_v = ((1 / wheel_radius) * (jacobian * velocity)).T.tolist()
 
     return wheels_v[0]
+
+
+if __name__ == "__main__":
+    print(apply_inverse_kinematics(3.0, 3.0, 0.0))
