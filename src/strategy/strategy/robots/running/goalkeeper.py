@@ -43,9 +43,10 @@ class DefensePosition(LeafNode):
         self.find_point_in_goal(m, b)
 
         if self.check_for_ball_in_defense_area(): 
+            print("apenas empurrando a bola")
             return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation_no_obstacle(self.ball.position_x, self.ball.position_y, theta)
         else:
-            return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation_no_obstacle(self.goal_x, self.goal_y, theta)
+            return TaskStatus.SUCCESS, None
 
 
     def check_for_ball_in_defense_area(self):
@@ -145,8 +146,10 @@ class CheckForEnemies(LeafNode):
         for enemy in self.blackboard.enemy_robots:
             distance = math.sqrt((self.blackboard.enemy_robots[enemy].position_x - self.ball_position_x) ** 2 + (self.blackboard.enemy_robots[enemy].position_y - self.ball_position_y) ** 2)
             if distance <= 100:
+                print("Inimigos pertos, vou até a bola")
                 return TaskStatus.SUCCESS, self.movement.move2point(0, self.ball_position_y)
         
+        print("Inimigos longe vou até o gol")
         return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.goal_position_x, self.goal_position_y, self.theta)
 
 class OurGoalkeeperAction(Selector):
@@ -157,7 +160,7 @@ class OurGoalkeeperAction(Selector):
         is_there_enemies = CheckForEnemies("CheckForEnemies")
         react_to_ball = Sequence("ReactBall", [is_near_ball, is_there_enemies]) 
         defensive_mode = DefensePosition("DefensivePosition")
-        self.add_children([react_to_ball, defensive_mode])
+        self.add_children([defensive_mode, react_to_ball])
     
     def __call__(self):
         return super().run()[1]

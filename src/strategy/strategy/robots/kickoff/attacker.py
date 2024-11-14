@@ -10,6 +10,7 @@ class OurActionAttacker():
 
     def __call__(self, **kwds):
         self.movement = NormalMovement()
+        print(self.movement.moveToCenter())
         return self.movement.moveToCenter()
 
     def run(self):

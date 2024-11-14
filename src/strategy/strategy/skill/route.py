@@ -1,5 +1,5 @@
 import math
-from movement.obstacles.dynamic_obstacles import BallObstacle
+from movement.obstacles.dynamic_obstacles import BallObstacle, RobotObstacle
 from movement.obstacles.static_obstacles import BoundaryObstacles, PenaltyAreaObstacles, WallObstacles
 from movement.path.path_profiles import MovementProfiles, DirectionProfiles
 from strategy.blackboard import Blackboard
@@ -13,12 +13,23 @@ class NormalMovement():
     def __init__(self):
         super().__init__()
         self.blackboard = Blackboard()
+        self.obstacle_list = []
+
+        # Populate obstacle_list with RobotObstacle instances for each enemy
+        for enemy_id, enemy in self.blackboard.enemy_robots.items():
+            self.obstacle_list.append(RobotObstacle(enemy))
+
+        # Check if obstacle_list is empty
+        if len(self.obstacle_list) == 0:
+            pass  # Optional: add handling for the case when there are no enemy robots
+
+
 
     # theta is radians and position(x,y) is millimeter
 
     def moveToEnemyGoal(self, p_x, p_y, theta):
         """Moviment to the enemy goal"""
-        return {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry)],
+        return {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry), *self.obstacle_list ],
                 "path_profile" : MovementProfiles.Normal,
                 "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
@@ -27,7 +38,7 @@ class NormalMovement():
 
 
     def move_to_position_with_orientation(self, p_x, p_y, theta):
-        return {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry)],
+        return {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry), *self.obstacle_list ],
                 "path_profile" : MovementProfiles.Normal,
                 "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
@@ -35,7 +46,7 @@ class NormalMovement():
                 "orientation_kwargs" : {"theta" : theta}}
     
     def move_to_position_goalkeeper(self, p_x, p_y, theta):
-        return {"obstacles" : [BoundaryObstacles(self.blackboard.geometry)],
+        return {"obstacles" : [BoundaryObstacles(self.blackboard.geometry), *self.obstacle_list],
                 "path_profile" : MovementProfiles.Normal,
                 "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
@@ -43,7 +54,7 @@ class NormalMovement():
                 "orientation_kwargs" : {"theta" : theta}} 
     
     def move_to_position_with_orientation_no_obstacle(self, p_x, p_y, theta):
-        return {"obstacles" : [],
+        return {"obstacles" : [*self.obstacle_list],
                 "path_profile" : MovementProfiles.Normal,
                 "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
@@ -53,7 +64,7 @@ class NormalMovement():
 
     def move2point(self, p_x, p_y):
 
-        return {"obstacles" : [],
+        return {"obstacles" : [*self.obstacle_list],
                 "path_profile" : MovementProfiles.Normal,
                 "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
@@ -65,7 +76,7 @@ class NormalMovement():
         """Moviment to point when the robot is not goalkeeper"""
         # This need the PenaltyArea()
         if self.blackboard.gui._is_field_side_left:
-            return {"obstacles" : [BoundaryObstacles(self.blackboard.geometry), WallObstacles(self.blackboard.geometry)],
+            return {"obstacles" : [BoundaryObstacles(self.blackboard.geometry), WallObstacles(self.blackboard.geometry), *self.obstacle_list],
                     "path_profile" : MovementProfiles.Normal,
                     "orientation_profile": DirectionProfiles.Aim,
                     "sync" : False,
@@ -73,7 +84,7 @@ class NormalMovement():
                     "orientation_kwargs" : {"theta" : 0}}
         else:
             #TODO theta is a not perfect, so I add 2.1 to adjust the error
-            return {"obstacles" : [BoundaryObstacles(self.blackboard.geometry), WallObstacles(self.blackboard.geometry)],
+            return {"obstacles" : [BoundaryObstacles(self.blackboard.geometry), WallObstacles(self.blackboard.geometry), *self.obstacle_list],
                     "path_profile" : MovementProfiles.Normal,
                     "orientation_profile": DirectionProfiles.Aim,
                     "sync" : False,
@@ -85,14 +96,14 @@ class NormalMovement():
         """"Moviment to the center of our goal"""
 
         if self.blackboard.gui._is_field_side_left:
-            return {"obstacles" : [],
+            return {"obstacles" : [*self.obstacle_list],
                     "path_profile" : MovementProfiles.Normal,
                     "orientation_profile": DirectionProfiles.Aim,
                     "sync" : False,
                     "path_kwargs" : {"goal_state" : (-2160,0)},
                     "orientation_kwargs" : {"theta" : 0}}
         else:
-            return {"obstacles" : [],
+            return {"obstacles" : [*self.obstacle_list],
                     "path_profile" : MovementProfiles.Normal,
                     "orientation_profile": DirectionProfiles.Aim,
                     "sync" : False,
@@ -103,14 +114,14 @@ class NormalMovement():
         """"Moviment to the center of our goal"""
 
         if self.blackboard.gui._is_field_side_left:
-            return {"obstacles" : [],
+            return {"obstacles" : [*self.obstacle_list],
                     "path_profile" : MovementProfiles.Normal,
                     "orientation_profile": DirectionProfiles.Aim,
                     "sync" : False,
                     "path_kwargs" : {"goal_state" : (-600,0)},
                     "orientation_kwargs" : {"theta" : 0}}
         else:
-            return {"obstacles" : [],
+            return {"obstacles" : [*self.obstacle_list],
                     "path_profile" : MovementProfiles.Normal,
                     "orientation_profile": DirectionProfiles.Aim,
                     "sync" : False,
@@ -124,14 +135,14 @@ class NormalMovement():
 
         # Penalty mark: at the goal to goal mark (y = 0) 3m away from the goal (x = -750 or x = +750)
         if self.blackboard.gui._is_field_side_left: # point (-750,0) turned to right
-            return {"obstacles" : [],
+            return {"obstacles" : [*self.obstacle_list],
                 "path_profile" : MovementProfiles.Normal,
                 "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
                 "path_kwargs" : {"goal_state" : (-660,0)},
                 "orientation_kwargs" : {"theta" : 0}}
         else: # point(750,0), turned to left
-            return {"obstacles" : [],
+            return {"obstacles" : [*self.obstacle_list],
                 "path_profile" : MovementProfiles.Normal,
                 "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
@@ -140,14 +151,14 @@ class NormalMovement():
     
     def moveToPenaltyDefender(self):
         if self.blackboard.gui._is_field_side_left:
-            return {"obstacles" : [],
+            return {"obstacles" : [*self.obstacle_list],
                 "path_profile" : MovementProfiles.Normal,
                 "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
                 "path_kwargs" : {"goal_state" : (1250,0)},
                 "orientation_kwargs" : {"theta" : pi}}
         else: # point(750,0), turned to left
-            return {"obstacles" : [],
+            return {"obstacles" : [*self.obstacle_list],
                 "path_profile" : MovementProfiles.Normal,
                 "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
@@ -161,14 +172,14 @@ class NormalMovement():
         tang = position_y/position_x
 
         if self.blackboard.gui._is_field_side_left:
-            return {"obstacles" : [],
+            return {"obstacles" : [*self.obstacle_list],
             "path_profile" : MovementProfiles.Normal,
             "orientation_profile": DirectionProfiles.Aim,
             "sync" : False,
             "path_kwargs" : {"goal_state" : (self.blackboard.balls[0].position_x - 120,self.blackboard.balls[0].position_y)},
             "orientation_kwargs" : {"theta" : math.atan(tang)}}
         else: 
-            return {"obstacles" : [],
+            return {"obstacles" : [*self.obstacle_list],
             "path_profile" : MovementProfiles.Normal,
             "orientation_profile": DirectionProfiles.Aim,
             "sync" : False,
@@ -179,7 +190,7 @@ class NormalMovement():
         position_x = (self.blackboard.ally_robots[0].position_x) - (self.blackboard.balls[0].position_x)
         position_y = (self.blackboard.ally_robots[0].position_y) - (self.blackboard.balls[0].position_y)
         tang = position_y/position_x
-        return {"obstacles" : [],
+        return {"obstacles" : [*self.obstacle_list],
             "path_profile" : MovementProfiles.Normal,
             "orientation_profile": DirectionProfiles.Aim,
             "sync" : False,
@@ -198,7 +209,7 @@ class StraightMovement():
 
         """Moviment to point when the robot is not goalkeeper"""
 
-        return {"obstacles" : [],
+        return {"obstacles" : [*self.obstacle_list],
                 "path_profile" : MovementProfiles.Straight,
                 "orientation_profile": [],
                 "sync" : True,
@@ -214,7 +225,7 @@ class GetInAngleStrategy():
 
     def run(self, p_x, p_y, theta):
     # Theta is use in path_profile and angle is use in orientation_profile
-        return {"obstacles" : [],
+        return {"obstacles" : [*self.obstacle_list],
                 "path_profile" : MovementProfiles.GetInAngle,
                 "orientation_profile": DirectionProfiles.Aim,
                 "sync" : False,
