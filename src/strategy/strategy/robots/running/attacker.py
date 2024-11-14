@@ -80,6 +80,7 @@ class CheckBallDistance(LeafNode):
     def __init__(self, name, robot):
         super().__init__(name)
         self.blackboard = Blackboard()
+        self.robot = robot
         self.ball_position_x = self.blackboard.balls[0].position_x
         self.ball_position_y = self.blackboard.balls[0].position_y
         self.position_x = self.blackboard.ally_robots[robot].position_x
@@ -95,6 +96,7 @@ class CheckBallDistance(LeafNode):
             return TaskStatus.SUCCESS, None
         else:
             print(f"Estou perto da bola {distance}")
+            # self.blackboard.ally_robots[robot].
             return TaskStatus.FAILURE, None
         
 

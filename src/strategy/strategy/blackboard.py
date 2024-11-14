@@ -45,13 +45,12 @@ class Blackboard(metaclass=SingletonMeta):
         self.ally_robots = {}
         self.enemy_robots = {}
         self.balls = {}
-        self.no_ball = [] 
         self.gui = GUIMessage()
         self.referee = RefereeMessage()
         self.referee_last_command = RefereeMessage()
         self.can_i_start = False
         self.geometry = VisionGeometry()
-        self.ball2 = Balls()
+        self.ball = Balls()
 
 
     def update_from_vision_message(self, message):
@@ -64,7 +63,18 @@ class Blackboard(metaclass=SingletonMeta):
             self.ally_robots = {ally.id: ally for ally in message.blue_robots}
             self.enemy_robots = {enemy.id: enemy for enemy in message.yellow_robots}
 
-        self.balls = message.balls
+        if self.balls != []:
+            self.balls = message.balls
+        else:
+            self.ball.id = 0
+            self.ball.position_x = 0
+            self.ball.position_y = 0
+            self.ball.velocity_x = 0
+            self.ball.velocity_y = 0
+
+            self.balls = self.ball
+
+
 
     def update_from_gamecontroller_message(self, message: RefereeMessage):
         self.referee_last_command = self.referee

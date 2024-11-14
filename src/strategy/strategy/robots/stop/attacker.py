@@ -1,3 +1,4 @@
+from movement.obstacles.static_obstacles import BoundaryObstacles, PenaltyAreaObstacles
 from strategy.behaviour import LeafNode, Selector, TaskStatus, Sequence
 from strategy.blackboard import Blackboard
 from strategy.skill.route import BreakStrategy, GetInAngleStrategy, NormalMovement, StraightMovement
@@ -42,7 +43,8 @@ class GoAway(LeafNode):
         self.name = "GoAway"
         self.blackboard = Blackboard()
         self.movement = NormalMovement()
-
+        self.penalty_area = PenaltyAreaObstacles(self.blackboard.geometry)
+        self.bounders_area = BoundaryObstacles(self.blackboard.geometry)
     def run(self):
         m, b = self.draw_line()
 
@@ -55,11 +57,11 @@ class GoAway(LeafNode):
 
         theta = theta if self.blackboard.gui.is_field_side_left else theta +  math.pi / 2
 
-        print(f"position x_d : {x_d}")
-        print(f"position y_d : {y_d}")
-        print(f"theta : {theta}")
+        # print(f"position x_d : {x_d}")
+        # print(f"position y_d : {y_d}")
+        # print(f"theta : {theta}")
 
-        return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(-x_d, -y_d, theta)
+        return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation_no_obstacle(-x_d, -y_d, theta)
 
 
     def draw_line(self):

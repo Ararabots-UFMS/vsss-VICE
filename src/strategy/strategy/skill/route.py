@@ -34,6 +34,14 @@ class NormalMovement():
                 "path_kwargs" : {"goal_state" : (p_x,p_y)},
                 "orientation_kwargs" : {"theta" : theta}}
     
+    def move_to_position_goalkeeper(self, p_x, p_y, theta):
+        return {"obstacles" : [BoundaryObstacles(self.blackboard.geometry)],
+                "path_profile" : MovementProfiles.Normal,
+                "orientation_profile": DirectionProfiles.Aim,
+                "sync" : False,
+                "path_kwargs" : {"goal_state" : (p_x,p_y)},
+                "orientation_kwargs" : {"theta" : theta}} 
+    
     def move_to_position_with_orientation_no_obstacle(self, p_x, p_y, theta):
         return {"obstacles" : [],
                 "path_profile" : MovementProfiles.Normal,
@@ -55,8 +63,9 @@ class NormalMovement():
     def moveToCenter(self):   
 
         """Moviment to point when the robot is not goalkeeper"""
+        # This need the PenaltyArea()
         if self.blackboard.gui._is_field_side_left:
-            return {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry), WallObstacles(self.blackboard.geometry)],
+            return {"obstacles" : [BoundaryObstacles(self.blackboard.geometry), WallObstacles(self.blackboard.geometry)],
                     "path_profile" : MovementProfiles.Normal,
                     "orientation_profile": DirectionProfiles.Aim,
                     "sync" : False,
@@ -64,7 +73,7 @@ class NormalMovement():
                     "orientation_kwargs" : {"theta" : 0}}
         else:
             #TODO theta is a not perfect, so I add 2.1 to adjust the error
-            return {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry), WallObstacles(self.blackboard.geometry)],
+            return {"obstacles" : [BoundaryObstacles(self.blackboard.geometry), WallObstacles(self.blackboard.geometry)],
                     "path_profile" : MovementProfiles.Normal,
                     "orientation_profile": DirectionProfiles.Aim,
                     "sync" : False,

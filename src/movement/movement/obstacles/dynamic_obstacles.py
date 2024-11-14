@@ -111,6 +111,7 @@ class BallObstacle(DynamicObstacle):
 
         dynamic_center, dynamic_radius = self.get_dynamic_range() if use_dynamic else ([self.ball.position_x, self.ball.position_y], self.radius)
         
+        print(f"is collision ref_point: {ref_point}")
         distance = sqrt((dynamic_center[0] - ref_point[0])**2 + (dynamic_center[1] - ref_point[1])**2)
 
         if distance < dynamic_radius + ref_radius + stop_distance:

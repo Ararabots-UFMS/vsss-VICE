@@ -136,7 +136,8 @@ class Running(Sequence):
         if self.last_command == None:
             middle = Sequence("MiddleZone", [middle_zone, IsOurAttack("name")])
         else:
-            middle = Sequence("MiddleZone", [middle_zone, self.last_command])
+            # This is just usefull in "estrategia unificada", that could be self.last_command
+            middle = Sequence("MiddleZone", [middle_zone, IsOurAttack("name")])
 
         defend = Sequence("DefenseSequence", [defense_zone, defense_action])
            
