@@ -95,15 +95,8 @@ class Blackboard(metaclass=SingletonMeta):
     def update_referee_not_start(self):
         self.can_i_start = False
 
+    def activate_kick(self):
+        self.can_i_kick = 1.0
 
-class DefaultBall():
-    def __init__(self):
-        self.id = 0
-        self.position_x = 0
-        self.position_y = 0
-        self.velocity_x = 0
-        self.velocity_y = 0
-    
-    def run(self):
-        pass
-    
+    def desactivate_kick(self):
+        self.can_i_kick = 0.0
