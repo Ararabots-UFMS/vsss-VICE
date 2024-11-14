@@ -37,9 +37,9 @@ class DefensePosition(LeafNode):
 
     def run(self):
         
-        enemy_id = self.closest_enemy_with_ball()
+        id = self.closest_enemy_with_ball()
 
-        m, b, theta = self.draw_line(enemy_id)
+        m, b, theta = self.draw_line(id)
         self.find_point_in_goal(m, b)
 
         if self.check_for_ball_in_defense_area(): 
@@ -74,31 +74,50 @@ class DefensePosition(LeafNode):
         
 
     def draw_line(self, id):
-        self.robot_x = self.blackboard.enemy_robots[id].position_x
-        self.robot_y = self.blackboard.enemy_robots[id].position_y
+        #If there are enenmies playing change to .enemy_robots[id]
+        if self.blackboard.enemy_robots:
+            self.robot_x = self.blackboard.enemy_robots[id].position_x
+            self.robot_y = self.blackboard.enemy_robots[id].position_y
         
-        if self.ball.position_x == self.robot_x:
-            n = self.ball.position_x
-            return 0, n 
+            if self.ball.position_x == self.robot_x:
+                n = self.ball.position_x
+                return 0, n 
 
-        m = (self.robot_y - self.ball.position_y) / (self.robot_x - self.ball.position_x)
-        b = self.ball.position_y - m * self.ball.position_x
+            m = (self.robot_y - self.ball.position_y) / (self.robot_x - self.ball.position_x)
+            b = self.ball.position_y - m * self.ball.position_x
+            
+            theta = math.atan2(self.robot_y - self.ball.position_y, self.robot_x - self.ball.position_x)
+
+            return m, b, theta 
+        else:
+            self.robot_x = self.blackboard.ally_robots[id].position_x
+            self.robot_y = self.blackboard.ally_robots[id].position_y
         
-        theta = math.atan2(self.robot_y - self.ball.position_y, self.robot_x - self.ball.position_x)
+            if self.ball.position_x == self.robot_x:
+                n = self.ball.position_x
+                return 0, n 
 
-        return m, b, theta 
+            m = (self.robot_y - self.ball.position_y) / (self.robot_x - self.ball.position_x)
+            b = self.ball.position_y - m * self.ball.position_x
+            
+            theta = math.atan2(self.robot_y - self.ball.position_y, self.robot_x - self.ball.position_x)
+
+            return m, b, theta 
     
     def closest_enemy_with_ball(self):
         distance = +math.inf
         enemy_id = None
         enemy_robots = self.blackboard.enemy_robots
-        for enemy in list(self.blackboard.enemy_robots):
-            enemy_distance = math.sqrt((enemy_robots[enemy].position_x - self.ball.position_x) ** 2 + (enemy_robots[enemy].position_y - self.ball.position_y) ** 2)
-            if enemy_distance <= distance:
-                distance = enemy_distance
-                enemy_id = enemy
-        
-        return enemy_id
+        if self.blackboard.enemy_robots:
+            for enemy in list(self.blackboard.enemy_robots):
+                enemy_distance = math.sqrt((enemy_robots[enemy].position_x - self.ball.position_x) ** 2 + (enemy_robots[enemy].position_y - self.ball.position_y) ** 2)
+                if enemy_distance <= distance:
+                    distance = enemy_distance
+                    enemy_id = enemy
+            return enemy_id
+        else:
+            return 0
+
     
 
 class CheckBallDistance(LeafNode):
@@ -143,14 +162,19 @@ class CheckForEnemies(LeafNode):
 
     def run(self):
 
-        for enemy in self.blackboard.enemy_robots:
-            distance = math.sqrt((self.blackboard.enemy_robots[enemy].position_x - self.ball_position_x) ** 2 + (self.blackboard.enemy_robots[enemy].position_y - self.ball_position_y) ** 2)
-            if distance <= 100:
-                print("Inimigos pertos, vou até a bola")
-                return TaskStatus.SUCCESS, self.movement.move2point(0, self.ball_position_y)
-        
-        print("Inimigos longe vou até o gol")
-        return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.goal_position_x, self.goal_position_y, self.theta)
+        if self.blackboard.enemy_robots:
+            for enemy in self.blackboard.enemy_robots:
+                distance = math.sqrt((self.blackboard.enemy_robots[enemy].position_x - self.ball_position_x) ** 2 + (self.blackboard.enemy_robots[enemy].position_y - self.ball_position_y) ** 2)
+                if distance <= 100:
+                    print("Inimigos pertos, vou até a bola")
+                    return TaskStatus.SUCCESS, self.movement.move2point(0, self.ball_position_y)
+            
+            print("Inimigos longe vou até o gol")
+            return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.goal_position_x, self.goal_position_y, self.theta)
+        else:
+            print("Não há inimigos, vou marcar gol.")
+            return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.goal_position_x, self.goal_position_y, self.theta)
+
 
 class OurGoalkeeperAction(Selector):
     def __init__(self, name):

@@ -37,9 +37,9 @@ class DefensePosition(LeafNode):
 
     def run(self):
         
-        enemy_id = self.closest_enemy_with_ball()
+        id = self.closest_enemy_with_ball()
 
-        m, b, theta = self.draw_line(enemy_id)
+        m, b, theta = self.draw_line(id)
         self.find_point_in_goal(m, b)
 
         if self.check_for_ball_in_defense_area(): 
@@ -73,31 +73,48 @@ class DefensePosition(LeafNode):
         
 
     def draw_line(self, id):
-        self.robot_x = self.blackboard.enemy_robots[id].position_x
-        self.robot_y = self.blackboard.enemy_robots[id].position_y
+        if self.blackboard.enemy_robots:
+            self.robot_x = self.blackboard.enemy_robots[id].position_x
+            self.robot_y = self.blackboard.enemy_robots[id].position_y
         
-        if self.ball.position_x == self.robot_x:
-            n = self.ball.position_x
-            return 0, n 
+            if self.ball.position_x == self.robot_x:
+                n = self.ball.position_x
+                return 0, n 
 
-        m = (self.robot_y - self.ball.position_y) / (self.robot_x - self.ball.position_x)
-        b = self.ball.position_y - m * self.ball.position_x
+            m = (self.robot_y - self.ball.position_y) / (self.robot_x - self.ball.position_x)
+            b = self.ball.position_y - m * self.ball.position_x
+            
+            theta = math.atan2(self.robot_y - self.ball.position_y, self.robot_x - self.ball.position_x)
+
+            return m, b, theta 
+        else:
+            self.robot_x = self.blackboard.ally_robots[id].position_x
+            self.robot_y = self.blackboard.ally_robots[id].position_y
         
-        theta = math.atan2(self.robot_y - self.ball.position_y, self.robot_x - self.ball.position_x)
+            if self.ball.position_x == self.robot_x:
+                n = self.ball.position_x
+                return 0, n 
 
-        return m, b, theta 
+            m = (self.robot_y - self.ball.position_y) / (self.robot_x - self.ball.position_x)
+            b = self.ball.position_y - m * self.ball.position_x
+            
+            theta = math.atan2(self.robot_y - self.ball.position_y, self.robot_x - self.ball.position_x)
+
+            return m, b, theta 
     
     def closest_enemy_with_ball(self):
         distance = +math.inf
-        enemy_id = None
+        id = None
         enemy_robots = self.blackboard.enemy_robots
-        for enemy in list(self.blackboard.enemy_robots):
-            enemy_distance = math.sqrt((enemy_robots[enemy].position_x - self.ball.position_x) ** 2 + (enemy_robots[enemy].position_y - self.ball.position_y) ** 2)
-            if enemy_distance <= distance:
-                distance = enemy_distance
-                enemy_id = enemy
-        
-        return enemy_id
+        if self.blackboard.enemy_robots:
+            for enemy in list(self.blackboard.enemy_robots):
+                enemy_distance = math.sqrt((enemy_robots[enemy].position_x - self.ball.position_x) ** 2 + (enemy_robots[enemy].position_y - self.ball.position_y) ** 2)
+                if enemy_distance <= distance:
+                    distance = enemy_distance
+                    id = enemy
+            return id
+        else:
+            return 0
     
 # TODO : Check if the robot is near the ball
 class CheckBallDistance(LeafNode):
