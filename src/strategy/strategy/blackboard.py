@@ -1,4 +1,4 @@
-from system_interfaces.msg import GUIMessage, RefereeMessage
+from system_interfaces.msg import GUIMessage, RefereeMessage, VisionGeometry, Balls
 from threading import Lock
 
 
@@ -47,9 +47,12 @@ class Blackboard(metaclass=SingletonMeta):
         self.balls = {}
         self.gui = GUIMessage()
         self.referee = RefereeMessage()
+        self.referee_last_command = RefereeMessage()
+        self.can_i_start = False
+        self.geometry = VisionGeometry()
+        self.ball = Balls()
+        self.can_i_kick = 0.0
 
-        # TODO: Remove this line
-        self.gui.is_team_color_yellow = True
 
     def update_from_vision_message(self, message):
         if message is None:
@@ -61,10 +64,39 @@ class Blackboard(metaclass=SingletonMeta):
             self.ally_robots = {ally.id: ally for ally in message.blue_robots}
             self.enemy_robots = {enemy.id: enemy for enemy in message.yellow_robots}
 
-        self.balls = message.balls
+        if self.balls != []:
+            self.balls = message.balls
+        else:
+            self.ball.id = 0
+            self.ball.position_x = 0
+            self.ball.position_y = 0
+            self.ball.velocity_x = 0
+            self.ball.velocity_y = 0
 
-    def update_from_gamecontroller_message(self, message):
+            self.balls = self.ball
+
+
+    def update_from_gamecontroller_message(self, message: RefereeMessage):
+        self.referee_last_command = self.referee
         self.referee = message
 
-    def update_from_gui_message(self, message):
+    def update_from_gui_message(self, message: GUIMessage):
         self.gui = message
+
+    def update_from_geometry(self, message: VisionGeometry):
+        self.geometry = message
+
+    def update_referee_no_command(self, message):
+        self.referee.command = message
+    
+    def update_referee_start(self):
+        self.can_i_start = True
+    
+    def update_referee_not_start(self):
+        self.can_i_start = False
+
+    def activate_kick(self):
+        self.can_i_kick = 1.0
+
+    def desactivate_kick(self):
+        self.can_i_kick = 0.0

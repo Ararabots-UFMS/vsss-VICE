@@ -1,116 +1,192 @@
-from movement.obstacles.interfaces import Obstacle, StaticObstacle
-from system_interfaces.msg import Robots
-from strategy.blackboard import Blackboard
+from movement.obstacles.interfaces import Obstacle, StaticObstacle, DynamicObstacle
 from movement.path.path import PathGenerator
 from movement.path.path_acceptor import PathAcceptor, AcceptorStatus
-from movement.path.path_profiles import MovementProfiles
+from movement.path.path_profiles import MovementProfiles, DirectionProfiles
+from strategy.blackboard import Blackboard
+from system_interfaces.msg import Robots
 
-from ruckig import InputParameter, OutputParameter, Result, Ruckig, Trajectory
+from ruckig import InputParameter, OutputParameter, Result, Ruckig, Trajectory, Synchronization
 
 from typing import List, Tuple
+from enum import Enum
 
+from math import cos, sin, pi, atan2
+from random import uniform
 
+class RobotStatus(Enum):
+    NORMAL = 1
+    COLLISION = 2
+    EXIT_AREA = 3
+    BYPASS_NOT_FOUND = 4
+    
 class Movement:
-    def __init__(self, robot_id: int):
+    def __init__(self, robot_id: int, bypass_trys: int, bypass_time: float, bypass_max_radius: float):
         self.id = robot_id
         self.blackboard = Blackboard()
+
+        self.bypass_trys = bypass_trys
+        self.bypass_time = bypass_time
+        self.bypass_max_radius = bypass_max_radius
 
         self.path_generator = PathGenerator()
         self.acceptor = PathAcceptor()
 
-        self.otg = Ruckig(3)
+        self.path_otg = Ruckig(2)
+        self.orientation_otg = Ruckig(1)
 
     def __call__(
-        self, obstacles: List[Obstacle], profile: MovementProfiles, **kwargs
+        self, init_state, obstacles: List[Obstacle], path_profile: MovementProfiles, orientation_profile: DirectionProfiles, sync: bool, **kwargs
     ) -> Tuple:
-        self.get_state()
+        # **kwargs need to be two different dicts of parameters. In this case, {path_kwargs} and {orientation_kwargs} inside kwargs.
 
-        trajectory = Trajectory(3)
+        path_trajectory = Trajectory(2)
+        orientation_trajectory = Trajectory(1)
 
         # Using ruckig notations
-        inp = self.path_generator.generate_input(self.get_state(), profile, **kwargs)
+        path_inp, orientation_inp = self.path_generator.generate_input(init_state, path_profile, orientation_profile, **kwargs)
 
-        result = self.otg.calculate(inp, trajectory)
+        self.calculate_path(path_inp, path_trajectory, self.path_otg)
+        self.calculate_path(orientation_inp, orientation_trajectory, self.orientation_otg)
 
-        status, collision_obs = self.acceptor.check(trajectory, obstacles)
+        status, collision_obs = self.acceptor.check(path_trajectory, obstacles)
 
-        # TODO INSIDEAREA is taking priority, it may lead to some issues
-        # If inside area, any trajectory is overwriten to a trajectory to get of the area.
         if status == AcceptorStatus.INSIDEAREA:
-            return self.exit_area(collision_obs)
+            return RobotStatus.EXIT_AREA, self.exit_area(init_state, collision_obs)
 
-        elif status == AcceptorStatus.ACCEPTED or (
-            profile != MovementProfiles.Normal
-            and profile != MovementProfiles.GetInAngle
-        ):
-            return trajectory, None
+        elif status == AcceptorStatus.COLLISION:
+            if isinstance(collision_obs, StaticObstacle):
+                if collision_obs.is_colission(path_trajectory.at_time(path_trajectory.duration)[0][:2]):
+                    return RobotStatus.NORMAL, self.guard_area(init_state, collision_obs, path_trajectory, orientation_profile, **kwargs)
+            if isinstance(collision_obs, DynamicObstacle) and collision_obs.is_colission(0.3, path_trajectory.at_time(0.01)[0][:2]):
+                return RobotStatus.NORMAL, (path_trajectory, orientation_trajectory)
+            return self.solve_collision(init_state, obstacles, path_profile, orientation_profile, **kwargs)
 
-        else:
-            return self.solve_collision(obstacles, trys=5, bypass_time=10, **kwargs)
+        elif status == AcceptorStatus.ACCEPTED:
+            return RobotStatus.NORMAL, (path_trajectory, orientation_trajectory)
 
     def solve_collision(
-        self, obstacles: List[Obstacle], trys: int, bypass_time: float, **kwargs
-    ):
-        self.update_state()
+        self, init_state, obstacles: List[Obstacle], path_profile: MovementProfiles, orientation_profile: DirectionProfiles, **kwargs):
+        # Try to find a bypass trajectory and bypass orientation, if not found, break
+        new_trajectory = Trajectory(2)
+        new_otrajectory = Trajectory(1)
 
-        # Try to find a bypass trajectory, if not found, break
-        for _ in range(trys):
-            bypass_trajectory = Trajectory(3)
-            bypass_inp = self.path_generator.generate_input(
-                self.get_state, MovementProfiles.Bypass
-            )
+        best_trajectory = None
+        best_time = float("inf")
 
-            self.otg.calculate(bypass_inp, bypass_trajectory)
+        for _ in range(self.bypass_trys):
+            random_radius1 = uniform(-self.bypass_max_radius, self.bypass_max_radius)
+            random_radius2 = uniform(-self.bypass_max_radius, self.bypass_max_radius)
 
-            # Found bypass without collision, now verify if can reach target state collision free too.
-            bypass_status, _ = self.acceptor.check(bypass_trajectory, obstacles)
-            if bypass_status == AcceptorStatus.ACCEPTED:
-                bypass_pos, bypass_vel, _ = bypass_trajectory.at_time(bypass_time)
+            random_point = [init_state[0][0] + random_radius1, init_state[0][1] + random_radius2]
 
-                new_trajectory = Trajectory(3)
-                new_inp = self.path_generator.generate_input(
-                    (bypass_pos, bypass_vel), kwargs["goal_state"]
-                )
+            angle_to_target = atan2(((kwargs["path_kwargs"]["goal_state"])[1]) - random_point[1], ((kwargs["path_kwargs"]["goal_state"])[0]) - random_point[0])
+            random_error_angle = uniform(angle_to_target - angle_to_target * 0.2, angle_to_target + angle_to_target * 0.2)
 
-                self.otg.calculate(new_inp, new_trajectory)
+            new_inp, new_oinp = self.path_generator.generate_input(
+            init_state,
+            MovementProfiles.GetInAngle,
+            orientation_profile,
+            path_kwargs = {'goal_state':(random_point[0], random_point[1]), "theta": random_error_angle}, 
+            orientation_kwargs = kwargs['orientation_kwargs'])
 
-                new_status, _ = self.acceptor.check(new_trajectory, obstacles)
-                if new_status == AcceptorStatus.ACCEPTED:
-                    return bypass_trajectory, new_trajectory
+            self.calculate_path(new_inp, new_trajectory, self.path_otg)
+            self.calculate_path(new_oinp, new_otrajectory, self.orientation_otg)
 
-        # No path was found, breaking
-        # TODO Don't know if breaking is the best action to take if no path is found
-        break_trajectory = Trajectory(3)
-        break_inp = self.path_generator.generate_input(
-            self.get_state, MovementProfiles.Break
-        )
+            status, collision_obs = self.acceptor.check(new_trajectory, obstacles)
 
-        self.otg.calculate(break_inp, break_trajectory)
+            if status == AcceptorStatus.ACCEPTED:
+                step = 0.2
+                for i in range(int(new_trajectory.duration / 0.2)):
+                    final_path = Trajectory(2)
+                    ofinal_path = Trajectory(1)
 
-        return break_trajectory, None
+                    state = new_trajectory.at_time(i * step)[:2]
+                    ostate = new_otrajectory.at_time(i * step)[:2]
 
-    def exit_area(self, area: StaticObstacle):
-        self.update_state()
+                    state[0].append(ostate[0][0])
+                    state[1].append(ostate[1][0])
 
-        new_trajectory = Trajectory(3)
-        outside_point = area.closest_outside_point(self.get_state)
-        new_inp = self.path_generator.generate_input(
-            self.get_state,
+                    new_inp, new_oinp = self.path_generator.generate_input(
+                    state,
+                    path_profile,
+                    orientation_profile,
+                    **kwargs)
+
+                    self.calculate_path(new_inp, final_path, self.path_otg)
+                    self.calculate_path(new_oinp, ofinal_path, self.orientation_otg)
+
+                    status, collision_obs = self.acceptor.check(final_path, obstacles)
+
+                    if isinstance(collision_obs, StaticObstacle) and collision_obs.is_colission(final_path.at_time(final_path.duration)[0][:2]):
+                        final_path, ofinal_path = self.guard_area(state, collision_obs, final_path, orientation_profile, **kwargs)
+
+                    status, collision_obs = self.acceptor.check(final_path, obstacles)
+
+                    if status == AcceptorStatus.ACCEPTED:
+                        path_time = new_trajectory.duration + final_path.duration
+                        if path_time < best_time:
+                            point = random_point
+                            best_trajectory = RobotStatus.COLLISION, (new_trajectory, new_otrajectory)
+                        continue
+
+            if best_trajectory == None:
+                new_inp, new_oinp = self.path_generator.generate_input(
+                init_state,
+                MovementProfiles.Break,
+                orientation_profile,
+                path_kwargs = {}, orientation_kwargs = kwargs['orientation_kwargs'])
+
+                self.calculate_path(new_inp, new_trajectory, self.path_otg)
+                self.calculate_path(new_oinp, new_otrajectory, self.orientation_otg)
+
+                best_trajectory = RobotStatus.BYPASS_NOT_FOUND, (new_trajectory, new_otrajectory)
+
+            return best_trajectory
+
+    def guard_area(self, init_state, obstacle, path_trajectory, orientation_profile, **kwargs):
+        new_trajectory = Trajectory(2)
+        new_otrajectory = Trajectory(1)
+
+        outside_point = obstacle.closest_outside_point(path_trajectory.at_time(path_trajectory.duration)[0][:2])
+
+        new_inp, new_oinp = self.path_generator.generate_input(
+            init_state,
             MovementProfiles.Normal,
-            goal_state=(
-                [outside_point[0], outside_point[1], self.get_state[0][2]],
-                [0, 0, 0],
-            ),
-        )
+            orientation_profile,
+            path_kwargs = {"goal_state" : outside_point},
+            orientation_kwargs = kwargs["orientation_kwargs"])
 
-        self.otg.calculate(new_inp, new_trajectory)
+        self.calculate_path(new_inp, new_trajectory, self.path_otg)
+        self.calculate_path(new_oinp, new_otrajectory, self.orientation_otg)
 
-        return new_trajectory, None
+        return new_trajectory, new_otrajectory
 
-    def get_state(self):
-        robot = self.blackboard.ally_robots[self.id]
+    def exit_area(self, init_state, area: StaticObstacle):
+        new_trajectory = Trajectory(2)
+        new_otrajectory = Trajectory(1)
 
-        return (
-            [robot.position_x, robot.position_y, robot.orientation],
-            [robot.velocity_x, robot.velocity_y, robot.velocity_orientation],
-        )
+        outside_point = area.closest_outside_point(init_state[0])
+
+        # TODO: Implement a DirectionPRofile Normal and pass the parameters here...
+        new_inp, new_oinp = self.path_generator.generate_input(
+            init_state,
+            MovementProfiles.Normal,
+            DirectionProfiles.Break,
+            path_kwargs = {'goal_state': (outside_point[0], outside_point[1])}, orientation_kwargs = {})
+
+        self.calculate_path(new_inp, new_trajectory, self.path_otg)
+        self.calculate_path(new_oinp, new_otrajectory, self.orientation_otg)
+
+        return new_trajectory, new_otrajectory
+
+    # I'm getting a lot of error from ruckig, so, if a error occur, gonna just ignore it
+    def calculate_path(self, inp, traj, otg):
+        try:
+            otg.calculate(inp, traj)
+        except:
+            try:
+                inp.synchronization = Synchronization.No
+                otg.calculate(inp, traj)
+                inp.synchronization = Synchronization.Yes
+            except:
+                pass

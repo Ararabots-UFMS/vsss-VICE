@@ -1,4 +1,5 @@
 from movement.obstacles.interfaces import Obstacle, StaticObstacle
+from movement.obstacles.dynamic_obstacles import RobotObstacle
 
 from ruckig import InputParameter, OutputParameter, Result, Ruckig, Trajectory
 
@@ -20,12 +21,12 @@ class PathAcceptor:
         self,
         trajectory: Trajectory,
         obstacles: List[Obstacle],
-        control_cycle: float = 0.01,
-        max_lookahead: float = 3,
+        control_cycle: float = 0.1,
+        max_lookahead: float = 2,
     ) -> Tuple[AcceptorStatus, Obstacle]:
         duration = trajectory.duration
 
-        step_size = duration / control_cycle
+        # step_size = duration / control_cycle
 
         if duration < max_lookahead:
             max_lookahead = duration
@@ -36,12 +37,17 @@ class PathAcceptor:
         while current_time < max_lookahead:
             position, velocity, acceleration = trajectory.at_time(current_time)
             for obs in obstacles:
-                if obs.is_colission(position):
-                    if type(obs) == StaticObstacle:
-                        return AcceptorStatus.INSIDEAREA, obs
-                    return AcceptorStatus.COLLISION, obs
+                if isinstance(obs, StaticObstacle):
+                    if obs.is_colission((position[0], position[1])):
+                        if current_time < 0.02:
+                            return (AcceptorStatus.INSIDEAREA, obs)
+                        else:
+                            return (AcceptorStatus.COLLISION, obs)
+                else:
+                    if obs.is_colission(current_time, (position[0], position[1])):
+                        return (AcceptorStatus.COLLISION, obs)
 
             # TODO Not using dynamic step size
-            current_time += step_size
+            current_time += control_cycle
 
         return AcceptorStatus.ACCEPTED, None
