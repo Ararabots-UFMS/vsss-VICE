@@ -127,8 +127,8 @@ class MoveToGoal(LeafNode):
         super().__init__(name)
         self.blackboard = Blackboard()
         self.goal_position_y = 0
-        # self.movement = GetInAngleStrategy()
-        self.movement = NormalMovement()
+        self.movement = GetInAngleStrategy()
+        # self.movement = NormalMovement()
         self.theta = 0
 
         #trocar para field lines dps
@@ -212,7 +212,7 @@ class OurActionAttacker(Selector):
         prepare2shoot = Selector("Prepare2Shoot", [going_to_ball, going_to_goal])
 
         # self.add_children([prepare2shoot, shoot_ball])
-        self.add_children([prepare2shoot, spin_ball])
+        self.add_children([prepare2shoot, shoot_ball])
 
     def __call__(self):
         return super().run()[1]

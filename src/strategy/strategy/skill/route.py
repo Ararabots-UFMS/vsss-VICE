@@ -271,7 +271,7 @@ class SpinStrategy():
     def spin(self, clockwise):
         return {"obstacles" : [],
                 "path_profile" : MovementProfiles.Break,
-                "orientation_profile": SpinProfile.Spin,
+                "orientation_profile": DirectionProfiles.Spin,
                 "sync" : False,
                 "path_kwargs" : {},
                 "orientation_kwargs" : {"clockwise" : clockwise}} 
