@@ -12,7 +12,6 @@ class Client:
 
     def connect(self):
         """Binds the client with ip and port and configure to UDP multicast."""
-        
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 128)
@@ -26,10 +25,9 @@ class Client:
         
     def receive(self):
         """Receive package and decode."""
-
         try:
             data, _ = self.sock.recvfrom(2048)
-        except timeout:
+        except:
             data, _ = self.sock.recvfrom(1024)
 
         decoded_data = SSL_WrapperPacket().FromString(data)

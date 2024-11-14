@@ -4,8 +4,17 @@ import rclpy
 
 from control_unit.robot import Robot
 from strategy.blackboard import Blackboard
-from strategy.play.strategy_node import make_bt
-from py_trees import logging as log_tree
+
+from strategy.coach.freekick import FreeKick
+from strategy.coach.halt import Halt
+from strategy.coach.kickoff import Kickoff
+from strategy.coach.main import CoachStrategy
+from strategy.coach.normal_start import Running
+from strategy.coach.penalty import Penalty
+from strategy.coach.stop import Stop
+from strategy.coach.timeout import _Timeout
+from strategy.coach.running.Defense_play import DefensivePlay, GetPoints
+
 
 
 class Coach(Node):
@@ -23,6 +32,7 @@ class Coach(Node):
         # TODO: experiment with other timer rates
         self.timer = self.create_timer(0.5, self.update)
         self.timer = self.create_timer(0.1, self.run)
+
 
     def update(self):
         # If a robot is in the blackboard and it doens't exist, it is created
@@ -49,17 +59,22 @@ class Coach(Node):
                 self.robots.pop(robot.id)
 
     def run(self):
-        # self.get_logger().info(f"Running")
-        pass
-        # self.behaviour_tree.run(self.blackboard)
+        # The code below just create a simple behaviour tree which is available in strategy
+        status, strategy = CoachStrategy("CoachStrategy").run()
+        # print(strategy)
+        
+        for robot in list(self.robots.values()):
+            if strategy != None:
+                self.robots[robot.id].behaviour = strategy[robot.id]
 
-
+        # strategy = DefensivePlay()
+        # strategy.run()
+        
 def main(args=None):
     rclpy.init(args=args)
     coach = Coach(None)
     rclpy.spin(coach)
     rclpy.shutdown()
-
 
 if __name__ == "__main__":
     main()

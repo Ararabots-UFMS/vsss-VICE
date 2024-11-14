@@ -81,8 +81,8 @@ class APINode(Node):
         self.robots = []
         self.robot_count = 0
 
-        self.is_field_side_left = True
-        self.is_team_color_yellow = False
+        self.is_field_side_right = True
+        self.is_team_color_yellow = True
         self.is_play_pressed = False
 
         self.get_logger().info("API Node started")
@@ -104,13 +104,20 @@ class APINode(Node):
         self.get_logger().info("Client disconneted")
         self.vision_subscriber = None
 
-    def handle_field_side(self, is_field_side_left):
-        self.get_logger().info(f"Is team field side left? {is_field_side_left}")
-        self.is_field_side_left = is_field_side_left
+    def handle_field_side(self, is_field_side_right):
+        # self.get_logger().info(f"Is team field side left? {is_field_side_left}")
+        is_field_side_right
+    
+        self.get_logger().info(f"Is team field side left? {is_field_side_right}")
 
-    def handle_team_color(self, is_team_color_blue):
-        self.get_logger().info(f"Is team color blue? {is_team_color_blue}")
-        self.is_team_color_blue = is_team_color_blue
+        self.is_field_side_right = is_field_side_right
+
+    def handle_team_color(self, is_team_color_yellow):
+        # self.get_logger().info(f"Is team color blue? {is_team_color_blue}")
+
+        self.get_logger().info(f"Is team color blue? {is_team_color_yellow}")
+
+        self.is_team_color_yellow = is_team_color_yellow
 
     def handle_simulation(self, is_simulation):
         self.get_logger().info(f"Is sumulation? {is_simulation}")
@@ -177,7 +184,7 @@ class APINode(Node):
 
     def create_message(self) -> GUIMessage:
         msg = GUIMessage()
-        msg.is_field_side_left = self.is_field_side_left
+        msg.is_field_side_left = not self.is_field_side_right
         msg.is_team_color_yellow = self.is_team_color_yellow
         msg.is_play_pressed = self.is_play_pressed
         for gui_robot in self.robots:

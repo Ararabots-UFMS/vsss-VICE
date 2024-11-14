@@ -41,13 +41,14 @@ class NormalProfile(PathProfile):
         inp.control_interface = ControlInterface.Position
         
         inp.target_position = [goal_state[0], goal_state[1]]
-        inp.target_velocity = [0, 0]
+       
         return None
 
 class GetInAngleProfile(PathProfile):
     ''' Return a bang-bang trajectory from initial state to final state arriving with a velocity in a angle'''
     def generate(inp: InputParameter, goal_state: Tuple[float, float], theta: float):
-        inp.control_interface = ControlInterface.Position
+        inp.control_interface = ControlInterface.Position 
+        inp.target_velocity = [0, 0]
 
         # Using 10% of the total velocity.
         bottleneck_vel = inp.max_velocity[0] if inp.max_velocity[0] < inp.max_velocity[1] else inp.max_velocity[1]

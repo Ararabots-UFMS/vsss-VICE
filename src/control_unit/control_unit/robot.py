@@ -1,9 +1,24 @@
 from rclpy.node import Node
 
+from time import time
+from math import sqrt, pi, cos, sin
+from random import uniform
+
+
 from strategy.blackboard import Blackboard
+from movement.move import Movement
+
+from movement.path import path_profiles as profiles
+from movement.path.path_acceptor import AcceptorStatus
+from movement.obstacles.dynamic_obstacles import RobotObstacle
+from movement.obstacles.static_obstacles import PenaltyAreaObstacles, BoundaryObstacles, WallObstacles
 
 from movement.move import Movement, RobotStatus
 from movement.path.path_profiles import MovementProfiles, DirectionProfiles
+from strategy.robots.running.attacker import OurActionAttacker
+from strategy.robots.halt.attacker import ActionAttacker
+from strategy.robots.penalty.our_penalty.goalkeeper import OurGoalkeeperAction
+from strategy.robots.freekick.our_free_kick.attacker import OurAttackerAction
 
 from control.mpc import Controller
 
@@ -13,8 +28,6 @@ from time import time
 from math import sqrt
 import numpy as np
 
-
-from movement.obstacles.static_obstacles import PenaltyAreaObstacles, BoundaryObstacles, WallObstacles
 from movement.obstacles.dynamic_obstacles import RobotObstacle
 
 class Robot(Node):
@@ -25,6 +38,7 @@ class Robot(Node):
 
         self.blackboard = Blackboard()
         self.behaviour = None
+        self.kick = 0.0
 
         self.move = Movement(self.id, bypass_trys = 100, bypass_time = 0.5, bypass_max_radius = 2500)
 
@@ -46,7 +60,7 @@ class Robot(Node):
         self.current_command = None
         self.status = RobotStatus.NORMAL
 
-        self.running = self.create_timer(1/60, self.run)
+        self.running = self.create_timer(1/4, self.run)
         self.update_control = self.create_timer(1/16, self.update_control)
 
         self.velocities = np.array([0, 0, 0])
@@ -54,21 +68,15 @@ class Robot(Node):
         self.test = time()
 
     def run(self):
-        # command = self.behaviour()
-        point = (self.blackboard.balls[0].position_x, self.blackboard.balls[0].position_y)
-
-        command = {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry),
-                                  BoundaryObstacles(self.blackboard.geometry),
-                                  WallObstacles(self.blackboard.geometry),
-                                  RobotObstacle(self.blackboard.enemy_robots[0])], 
-            "path_profile" : MovementProfiles.Normal,
-            "orientation_profile" : DirectionProfiles.Aim,
-            "sync" : False,
-            "path_kwargs" : {"goal_state": point}, 
-            "orientation_kwargs" : {"theta": 0}}
         
-        if command == None:
-            command = self.current_command
+        # self.behaviour =  OurActionAttacker("name")
+        if self.behaviour != None:
+            command = self.behaviour()
+        else:
+            self.behaviour = ActionAttacker()
+            command = self.behaviour()
+       
+        self.update_kick()
 
         self.update_trajectory(command)
 
@@ -134,13 +142,21 @@ class Robot(Node):
     def set_behaviour(self, behaviour_tree):
         self.behaviour = behaviour_tree
 
+    def update_kick(self):
+        self.kick = self.blackboard.can_i_kick
+        
+
     def get_state(self, from_vision = True):
         ''' Retuns robots position from blackboard '''
+        
         if from_vision:
-            robot = self.blackboard.ally_robots[self.id]
+            try:
+                robot = self.blackboard.ally_robots[self.id]
 
-            return (np.array([robot.position_x, robot.position_y, robot.orientation]),
-                np.array([robot.velocity_x, robot.velocity_y, robot.velocity_orientation]))
+                return (np.array([robot.position_x, robot.position_y, robot.orientation]),
+                    np.array([robot.velocity_x, robot.velocity_y, robot.velocity_orientation]))
+            except:
+                pass
 
         state = self.path_trajectory.at_time(self.get_relative_time())[:2]
         ostate = self.orientation_trajectory.at_time(self.get_relative_time())[:2]
