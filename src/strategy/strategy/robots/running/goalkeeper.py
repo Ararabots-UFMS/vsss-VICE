@@ -143,14 +143,19 @@ class CheckForEnemies(LeafNode):
 
     def run(self):
 
-        for enemy in self.blackboard.enemy_robots:
-            distance = math.sqrt((self.blackboard.enemy_robots[enemy].position_x - self.ball_position_x) ** 2 + (self.blackboard.enemy_robots[enemy].position_y - self.ball_position_y) ** 2)
-            if distance <= 100:
-                print("Inimigos pertos, vou até a bola")
-                return TaskStatus.SUCCESS, self.movement.move2point(0, self.ball_position_y)
-        
-        print("Inimigos longe vou até o gol")
-        return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.goal_position_x, self.goal_position_y, self.theta)
+        if self.blackboard.enemy_robots:
+            for enemy in self.blackboard.enemy_robots:
+                distance = math.sqrt((self.blackboard.enemy_robots[enemy].position_x - self.ball_position_x) ** 2 + (self.blackboard.enemy_robots[enemy].position_y - self.ball_position_y) ** 2)
+                if distance <= 100:
+                    print("Inimigos pertos, vou até a bola")
+                    return TaskStatus.SUCCESS, self.movement.move2point(0, self.ball_position_y)
+            
+            print("Inimigos longe vou até o gol")
+            return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.goal_position_x, self.goal_position_y, self.theta)
+        else:
+            print("Não há inimigos, vou marcar gol.")
+            return TaskStatus.SUCCESS, 
+
 
 class OurGoalkeeperAction(Selector):
     def __init__(self, name):
