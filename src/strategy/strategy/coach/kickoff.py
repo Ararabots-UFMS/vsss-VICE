@@ -54,7 +54,10 @@ class OurKickoffAction(LeafNode):
         return TaskStatus.SUCCESS, self.commands"""
 
         #Estrategia unificada:
-        return TaskStatus.SUCCESS, OurActionAttacker()
+        for robot in self.blackboard.ally_robots:
+            self.commands[robot] = OurActionAttacker()
+        
+        return TaskStatus.SUCCESS, self.commands
     
 class TheirKickoffAction(LeafNode):
     def __init__(self, name):
@@ -72,7 +75,10 @@ class TheirKickoffAction(LeafNode):
         return TaskStatus.SUCCESS, self.commands"""
 
         #Estrategia unificada:
-        return TaskStatus.SUCCESS, TheirActionGoalKeeper()
+        for robot in self.blackboard.ally_robots:
+            self.commands[robot] = TheirActionGoalKeeper()
+        
+        return TaskStatus.SUCCESS, self.commands
     
 class Kickoff(Sequence):
     def __init__(self, name):

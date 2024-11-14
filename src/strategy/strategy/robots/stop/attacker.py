@@ -41,7 +41,7 @@ class GoAway(LeafNode):
         super().__init__(name)
         self.name = "GoAway"
         self.blackboard = Blackboard()
-        self.movement = GetInAngleStrategy()
+        self.movement = NormalMovement()
 
     def run(self):
         m, b = self.draw_line()
@@ -59,7 +59,7 @@ class GoAway(LeafNode):
         print(f"position y_d : {y_d}")
         print(f"theta : {theta}")
 
-        return TaskStatus.SUCCESS, self.movement.run(-x_d, -y_d, theta)
+        return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(-x_d, -y_d, theta)
 
 
     def draw_line(self):

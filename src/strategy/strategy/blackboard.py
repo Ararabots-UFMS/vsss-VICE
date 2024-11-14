@@ -63,17 +63,8 @@ class Blackboard(metaclass=SingletonMeta):
         else:
             self.ally_robots = {ally.id: ally for ally in message.blue_robots}
             self.enemy_robots = {enemy.id: enemy for enemy in message.yellow_robots}
-        
-        if message.balls != []:
-            self.balls = message.balls
-        else:
-            self.ball2.id = 0
-            self.ball2.position_x = 0.0
-            self.ball2.position_y = 0.0
-            self.ball2.velocity_x = 0.0
-            self.ball2.velocity_y = 0.0
 
-            self.balls = [self.ball2]
+        self.balls = message.balls
 
     def update_from_gamecontroller_message(self, message: RefereeMessage):
         self.referee_last_command = self.referee

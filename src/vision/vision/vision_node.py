@@ -22,12 +22,12 @@ class Vision(Node):
         # Parameters settings.
         self.declare_parameter('ip', '224.5.23.2')
         # Visão real
-        self.declare_parameter('port', 10006)
+        # self.declare_parameter('port', 10006)
         # Grsim 
-        # self.declare_parameter('port', 10020)
+        self.declare_parameter('port', 10020)
         self.declare_parameter('verbose', False)
-        self.declare_parameter('num_cams', 1)
-        self.declare_parameter('max_frame_skipped', 5)\
+        self.declare_parameter('num_cams', 4)
+        self.declare_parameter('max_frame_skipped', 5)
         
         # Verbose prints in terminal all received data.
         self.ip = self.get_parameter('ip').get_parameter_value().string_value
