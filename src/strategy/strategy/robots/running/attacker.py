@@ -141,8 +141,10 @@ class MoveToGoal(LeafNode):
     def run(self):
         print("Indo até o gol")
         if self.blackboard.gui.is_field_side_left:
+            self.blackboard.activate_kick()
             return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.goal_position_x, self.goal_position_y, self.theta)
         else:
+            self.blackboard.activate_kick()
             self.theta = math.pi
             return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(-self.goal_position_x, self.goal_position_y, self.theta)
 
