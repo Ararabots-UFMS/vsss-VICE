@@ -51,6 +51,7 @@ class Blackboard(metaclass=SingletonMeta):
         self.can_i_start = False
         self.geometry = VisionGeometry()
         self.ball = Balls()
+        self.can_i_kick = 0.0
 
 
     def update_from_vision_message(self, message):
@@ -73,7 +74,6 @@ class Blackboard(metaclass=SingletonMeta):
             self.ball.velocity_y = 0
 
             self.balls = self.ball
-
 
 
     def update_from_gamecontroller_message(self, message: RefereeMessage):

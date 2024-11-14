@@ -36,10 +36,9 @@ class Robot(Node):
         self.id = id
         self.name = name
 
-        self.kick = False
-
         self.blackboard = Blackboard()
         self.behaviour = None
+        self.kick = 0.0
 
         self.move = Movement(self.id, bypass_trys = 100, bypass_time = 0.5, bypass_max_radius = 2500)
 
@@ -77,6 +76,7 @@ class Robot(Node):
             self.behaviour = ActionAttacker()
             command = self.behaviour()
        
+        self.update_kick()
 
         self.update_trajectory(command)
 
@@ -141,6 +141,10 @@ class Robot(Node):
 
     def set_behaviour(self, behaviour_tree):
         self.behaviour = behaviour_tree
+
+    def update_kick(self):
+        self.kick = self.blackboard.can_i_kick
+        
 
     def get_state(self, from_vision = True):
         ''' Retuns robots position from blackboard '''
