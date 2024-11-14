@@ -5,6 +5,7 @@ from threading import Thread
 from time import time
 
 from system_interfaces.msg import TeamCommand, RobotCommand
+from grsim_messenger.inverse_kinematics import apply_inverse_kinematics
 
 
 class ManualCommand(Node):
@@ -14,8 +15,8 @@ class ManualCommand(Node):
         self.create_timer(1 / 60, self.publish_command)
         self.key_press_times = {}
         self.velocities = {"w": 0.0, "s": 0.0, "a": 0.0, "d": 0.0, "q": 0.0, "e": 0.0}
-        self.max_velocity = 1.0  # Maximum velocity limit
-        self.acceleration_rate = 0.1  # Rate at which velocity increases
+        self.max_velocity = 3.0  # Maximum velocity limit
+        self.acceleration_rate = 0.5  # Rate at which velocity increases
         self.decay_rate = 0.01  # Rate at which velocity decays
 
     def publish_command(self):
@@ -28,6 +29,8 @@ class ManualCommand(Node):
         vy = self.calculate_velocity("a", False) + self.calculate_velocity("d", True)
         vt = self.calculate_velocity("q", False) + self.calculate_velocity("e", True)
         print(vx, vy, vt)
+        print(type(apply_inverse_kinematics(vx, vy, vt)))
+        [print(f"{i}\t") for i in apply_inverse_kinematics(vx, vy, vt)]
         robot_command = RobotCommand()
         robot_command.robot_id = 0
         robot_command.linear_velocity_x = vx
@@ -40,11 +43,18 @@ class ManualCommand(Node):
         return command
 
     def calculate_velocity(self, key, is_negative_key):
+        if key in [
+            "q",
+            "e",
+        ]:
+            max_velocity = 6.0
+        else:
+            max_velocity = self.max_velocity
         current_time = time()
         if key in self.key_press_times:
             elapsed_time = current_time - self.key_press_times[key]
             self.velocities[key] = min(
-                self.max_velocity, elapsed_time * self.acceleration_rate
+                max_velocity, elapsed_time * self.acceleration_rate
             )
             if is_negative_key:
                 self.velocities[key] *= -1

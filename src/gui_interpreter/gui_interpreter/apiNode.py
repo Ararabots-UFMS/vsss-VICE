@@ -122,6 +122,10 @@ class APINode(Node):
     def handle_simulation(self, is_simulation):
         self.get_logger().info(f"Is sumulation? {is_simulation}")
         self.is_simulation = is_simulation
+        try:
+            self.executor.remove_node(self.communication_node)
+        except:
+            pass
         self.communication_node.destroy_node()
         if is_simulation:
             self.communication_node = grSimPublisher()

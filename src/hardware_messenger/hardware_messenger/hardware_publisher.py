@@ -12,7 +12,7 @@ class HardwarePublisher(Node):
 
         # Parameters settings.
         self.declare_parameter("port", "/dev/ttyUSB0")
-        self.declare_parameter("baudrate", 2000000)
+        self.declare_parameter("baudrate", 1000000)
 
         self.port = self.get_parameter("port").get_parameter_value().string_value
         self.baudrate = (
@@ -25,8 +25,7 @@ class HardwarePublisher(Node):
         name = "B"
         velocities_format = "fff"
         kick = "B"
-        control_values = "fff"
-        self.robot_command_format = name + velocities_format + kick + control_values
+        self.robot_command_format = name + velocities_format + kick
 
         self.robots = {}
 
@@ -34,7 +33,7 @@ class HardwarePublisher(Node):
         self.robot_count = 0
         self.first_message_sent = False
 
-        self.serial_writer = serial.Serial(self.port, self.baudrate)
+        self.serial_writer = serial.Serial(self.port, self.baudrate, timeout=0.1)
 
         self.commandSubscriber = self.create_subscription(
             TeamCommand, "commandTopic", self.translate_command, 10
@@ -49,17 +48,29 @@ class HardwarePublisher(Node):
         )  # publish to serial at 60Hz
 
     def publish_command(self):
+        self.get_logger().info(
+            f"first message sent: {self.first_message_sent}, robot count: {self.robot_count}"
+        )
         if len(self._command) == 0:
+            self.get_logger().info(f"Returning")
             return
         elif not self.first_message_sent and self.robot_count != 0:
             self.get_logger().info(f"Sending robot count {self.robot_count}")
             self.serial_writer.write(struct.pack("B", *[self.robot_count]))
             self.first_message_sent = True
-        else:
-            while self.serial_writer.in_waiting == 0:
-                pass
-            self.serial_writer.write(struct.pack(self.format_string, *self._command))
-            self.serial_writer.reset_input_buffer()
+        elif self.first_message_sent and self.robot_count != 0:
+            # while self.serial_writer.in_waiting == 0:
+            #     pass
+            if self.serial_writer.in_waiting != 0:
+                lido = self.serial_writer.read()
+                self.get_logger().info(f"lido: {lido}")
+                if lido == b"R":
+                    self.get_logger().info(f"command: {self._command}")
+                    self.serial_writer.write(
+                        struct.pack(self.format_string, *self._command)
+                    )
+                    self.serial_writer.reset_input_buffer()
+                    self.get_logger().info(f"Sent command")
 
     def gui_callback(self, message):
         self.robot_count = message.robot_count
@@ -82,9 +93,6 @@ class HardwarePublisher(Node):
                 float(robot.linear_velocity_y),
                 float(robot.angular_velocity),
                 int(robot.kick),
-                float(self.robots[robot.robot_id].kp),
-                float(self.robots[robot.robot_id].ki),
-                float(self.robots[robot.robot_id].kd),
             ]
 
             self._command.extend(robot_command)
