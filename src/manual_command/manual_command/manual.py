@@ -36,7 +36,7 @@ class ManualCommand(Node):
         robot_command.linear_velocity_x = vx
         robot_command.linear_velocity_y = vy
         robot_command.angular_velocity = vt
-        robot_command.kick = False
+        robot_command.kick = 0.0
         command = TeamCommand()
         command.robots.append(robot_command)
 

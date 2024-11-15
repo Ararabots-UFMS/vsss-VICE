@@ -9,15 +9,19 @@ from typing import List, Optional, Tuple
 class PathGenerator:
     def __init__(
         self,
-        constrainsts: Tuple[List[float]] = ([3000, 3000, 1], [1000, 1000, 0.5]),
+        constrainsts: Tuple[List[float]] = ([500, 500, 1], [500, 500, 0.5]),
     ):
         self.vel_constrainst = constrainsts[0]
         self.acc_constrainst = constrainsts[1]
 
     def generate_input(
-        self, init_state: Tuple[List[float]], path_profile: PathProfile, orientation_profile: OrientationProfile,  **kwargs
+        self,
+        init_state: Tuple[List[float]],
+        path_profile: PathProfile,
+        orientation_profile: OrientationProfile,
+        **kwargs
     ) -> Tuple[InputParameter, InputParameter]:
-        
+
         # **kwargs need to be two different dicts of parameters. In this case, {path_kwargs} and {orientation_kwargs} inside kwargs.
         inp_path = InputParameter(2)
         inp_orientation = InputParameter(1)
@@ -40,7 +44,10 @@ class PathGenerator:
         path_profile.generate(inp_path, **kwargs["path_kwargs"])
         orientation_profile.generate(inp_orientation, **kwargs["orientation_kwargs"])
 
-
-        inp_orientation.current_position[0], inp_orientation.target_position[0] = orientation_solver(inp_orientation.current_position[0], inp_orientation.target_position[0])
+        inp_orientation.current_position[0], inp_orientation.target_position[0] = (
+            orientation_solver(
+                inp_orientation.current_position[0], inp_orientation.target_position[0]
+            )
+        )
 
         return inp_path, inp_orientation

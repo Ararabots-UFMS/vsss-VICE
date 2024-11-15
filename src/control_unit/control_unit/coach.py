@@ -16,7 +16,6 @@ from strategy.coach.timeout import _Timeout
 from strategy.coach.running.Defense_play import DefensivePlay, GetPoints
 
 
-
 class Coach(Node):
     def __init__(self, _executor, behaviour_tree) -> None:
         super().__init__("coach")
@@ -32,7 +31,6 @@ class Coach(Node):
         # TODO: experiment with other timer rates
         self.timer = self.create_timer(0.5, self.update)
         self.timer = self.create_timer(0.1, self.run)
-
 
     def update(self):
         # If a robot is in the blackboard and it doens't exist, it is created
@@ -62,19 +60,24 @@ class Coach(Node):
         # The code below just create a simple behaviour tree which is available in strategy
         status, strategy = CoachStrategy("CoachStrategy").run()
         # print(strategy)
-        
+
         for robot in list(self.robots.values()):
             if strategy != None:
-                self.robots[robot.id].behaviour = strategy[robot.id]
+                try:
+                    self.robots[robot.id].behaviour = strategy[robot.id]
+                except:
+                    self.get_logger().info("ROBOT NOT FOUND")
 
         # strategy = DefensivePlay()
         # strategy.run()
-        
+
+
 def main(args=None):
     rclpy.init(args=args)
     coach = Coach(None)
     rclpy.spin(coach)
     rclpy.shutdown()
+
 
 if __name__ == "__main__":
     main()
