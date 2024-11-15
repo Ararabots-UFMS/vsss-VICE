@@ -26,6 +26,8 @@ from strategy.robots.freekick.our_free_kick.attacker import OurAttackerAction
 
 from control.mpc import Controller
 
+from utils.math_utils import orientation_solver
+
 from ruckig import Trajectory
 
 from time import time
@@ -41,7 +43,7 @@ class Robot(Node):
         id: int,
         name: str,
         max_velocity=3000,
-        max_angular_vel=1,
+        max_angular_vel=3.14,
         max_acceleration=3000,
         max_angular_acc=0.5,
     ):
@@ -90,16 +92,34 @@ class Robot(Node):
     def run(self):
 
         # self.behaviour =  OurActionAttacker("name")
-        self.get_logger().info(f"{self.path_trajectory.at_time(self.get_relative_time())} {(self.blackboard.ally_robots[0].position_x, self.blackboard.ally_robots[0].position_y)}")
-        if self.behaviour != None:
-            command = self.behaviour()
-        else:
-            self.behaviour = ActionAttacker()
-            command = self.behaviour()
+        # self.get_logger().info(f"{self.path_trajectory.at_time(self.get_relative_time())} {(self.blackboard.ally_robots[0].position_x, self.blackboard.ally_robots[0].position_y)}")
+        # if self.behaviour != None:
+        #     command = self.behaviour()
+        # else:
+        self.behaviour = ActionAttacker()
+        # command = self.behaviour()
+        theta = 0
+        if time() - self.test < 10:
+            theta = 0
+        elif time() - self.test < 20:
+            theta = pi/2
+        elif time() - self.test < 30:
+            theta = pi
+        elif time() - self.test < 40:
+            theta = -pi/2
+
+        command =  {"obstacles" : [],
+                "path_profile" : MovementProfiles.Break,
+                "orientation_profile": DirectionProfiles.Aim,
+                "sync" : False,
+                "path_kwargs" : {},
+                "orientation_kwargs" : {"theta" : theta}}
 
         self.update_kick()
 
         self.update_trajectory(command)
+
+        self.get_logger().info(f"{orientation_solver(self.get_state()[0][2], self.get_state(from_vision=False)[0][2])}")
 
     def update_trajectory(self, command):
         status, (path_trajectory, orientation_trajectory) = self.move(

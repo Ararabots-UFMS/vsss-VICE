@@ -1,7 +1,7 @@
 from do_mpc.controller import MPC
 from control.model import get_model
 from time import time
-
+from math import copysign, pi
 from ruckig import Trajectory
 
 
@@ -29,6 +29,10 @@ class Controller:
         self.mpc.setup()
 
     def __call__(self, state):
+        if copysign(1, state[2]) != copysign(1, self.orientation_trajectory.at_time(self.orientation_trajectory.duration)[0][0]):
+            state[2] += 2*pi * copysign(1, self.orientation_trajectory.at_time(self.orientation_trajectory.duration)[0][0])
+        
+        self.set_initial_guess(state)
         return self.mpc.make_step(state)
 
     def set_initial_guess(self, state):
@@ -51,7 +55,7 @@ class Controller:
 
             self.tvp_template["_tvp", k, "ref_x"] = positions[0]
             self.tvp_template["_tvp", k, "ref_y"] = positions[1]
-            self.tvp_template["_tvp", k, "ref_orientation"] = orientation[0]
+            self.tvp_template["_tvp", k, "ref_orientation"] = orientation
         return self.tvp_template
 
 
@@ -74,7 +78,7 @@ def get_mpc(
     )
     mterm = lterm
     mpc.set_objective(lterm=lterm, mterm=mterm)
-    mpc.set_rterm(vx=1e-4, vy=1e-4, angular_velocity=1e-2)
+    mpc.set_rterm(vx=1e-4, vy=1e-4, angular_velocity=1e-4)
 
     mpc.bounds["lower", "_u", "vx"] = -max_velocity
     mpc.bounds["lower", "_u", "vy"] = -max_velocity
