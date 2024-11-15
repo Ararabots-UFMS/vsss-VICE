@@ -1,7 +1,7 @@
 import math
 from movement.obstacles.dynamic_obstacles import BallObstacle, RobotObstacle
 from movement.obstacles.static_obstacles import BoundaryObstacles, PenaltyAreaObstacles, WallObstacles
-from movement.path.path_profiles import MovementProfiles, DirectionProfiles
+from movement.path.path_profiles import MovementProfiles, DirectionProfiles, SpinProfile
 from strategy.blackboard import Blackboard
 from math import pi
 
@@ -262,4 +262,17 @@ class BreakStrategy():
                 "sync" : False,
                 "path_kwargs" : {},
                 "orientation_kwargs" : {}}
+    
+class SpinStrategy():
+    def __init__(self):
+        super().__init__()
+        self.blackboard = Blackboard()
+
+    def spin(self, clockwise):
+        return {"obstacles" : [],
+                "path_profile" : MovementProfiles.Break,
+                "orientation_profile": DirectionProfiles.Spin,
+                "sync" : False,
+                "path_kwargs" : {},
+                "orientation_kwargs" : {"clockwise" : clockwise}} 
         

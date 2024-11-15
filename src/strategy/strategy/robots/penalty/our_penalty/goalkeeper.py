@@ -35,10 +35,9 @@ class DefensePosition(LeafNode):
                     self.penalty_stretch_x = line.x1
 
     def run(self):
-
         enemy_id = self.closest_enemy_with_ball()
 
-        m, b, theta = self.draw_line(enemy_id)
+        m, b, theta = self.draw_line(id)
         self.find_point_in_goal(m, b)
 
         if self.check_for_ball_in_defense_area():
@@ -88,7 +87,6 @@ class DefensePosition(LeafNode):
             self.goal_y = self.goal_bound_y2
 
     def draw_line(self, id):
-
         self.robot_x = 2250
         self.robot_y = 0
 
@@ -122,7 +120,6 @@ class DefensePosition(LeafNode):
 
         enemy_id = 1
         return enemy_id
-
 
 # TODO : Check if the robot is near the ball
 class CheckBallDistance(LeafNode):

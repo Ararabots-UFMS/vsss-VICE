@@ -1,4 +1,3 @@
-
 from strategy.blackboard import Blackboard
 from strategy.skill.route import NormalMovement
 

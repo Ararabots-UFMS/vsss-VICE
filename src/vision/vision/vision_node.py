@@ -30,7 +30,6 @@ class Vision(Node):
         self.declare_parameter("verbose", False)
         self.declare_parameter("num_cams", 4)
         self.declare_parameter("max_frame_skipped", 30)
-
         # Verbose prints in terminal all received data.
         self.ip = self.get_parameter("ip").get_parameter_value().string_value
         self.port = self.get_parameter("port").get_parameter_value().integer_value

@@ -1,7 +1,7 @@
 import math
 from strategy.behaviour import LeafNode, Selector, Sequence, TaskStatus
 from strategy.blackboard import Blackboard
-from strategy.skill.route import BreakStrategy, GetInAngleStrategy, NormalMovement
+from strategy.skill.route import BreakStrategy, GetInAngleStrategy, NormalMovement, SpinStrategy
 
 """Contains all RunningActions the robot must do (in order or not) during the match"""
 
@@ -139,8 +139,8 @@ class MoveToGoal(LeafNode):
         super().__init__(name)
         self.blackboard = Blackboard()
         self.goal_position_y = 0
-        # self.movement = GetInAngleStrategy()
-        self.movement = NormalMovement()
+        self.movement = GetInAngleStrategy()
+        # self.movement = NormalMovement()
         self.theta = 0
 
         # trocar para field lines dps
@@ -157,19 +157,55 @@ class MoveToGoal(LeafNode):
                 self.goal_position_x, self.goal_position_y, self.theta
             )
         else:
-            self.blackboard.activate_kick()
+            # self.blackboard.activate_kick()
             self.theta = math.pi
             return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(
                 -self.goal_position_x, self.goal_position_y, self.theta
             )
 
+#It must be used with we dont have a kick:
+
+class SpinBall(LeafNode):
+    def __init__(self, name):
+        super().__init__(name)
+        self.blackboard = Blackboard()
+        self.movement = SpinStrategy()
+        self.enemy_goalkeeper_id = 0
+        if self.blackboard.gui.is_team_color_yellow:
+            self.enemy_color = 0 # blue color in list
+        else:
+            self.enemy_color = 1 # Yellow color in list
+        self.is_left = False
+    
+    def where_is_enemy_goalkeeper(self):
+        try:
+            for enemy in self.blackboard.enemy_robots:
+                if enemy == self.blackboard.referee.teams[self.enemy_color].goalkeeper:
+                    self.enemy_goalkeeper_id = enemy
+            
+            if round(self.blackboard.enemy_robots[self.enemy_goalkeeper_id].position_y) < 0:
+                self.is_left = True 
+
+            return self.is_left
+
+        except:
+            return self.is_left
+        
+    def run(self):
+        self.where_is_enemy_goalkeeper()
+        return TaskStatus.SUCCESS, self.movement.spin(self.is_left)
+
+
+#It must be used with we have a kick:
 
 class ShootBall(LeafNode):
     def __init__(self, name):
         super().__init__(name)
         self.movement = BreakStrategy()
+        self.blackboard = Blackboard()
 
     def run(self):
+        self.blackboard.activate_kick()
         return TaskStatus.SUCCESS, self.movement._break()
 
 
@@ -181,13 +217,18 @@ class OurActionAttacker(Selector):
         is_near_ball = CheckBallDistance("CheckBallDistance", robot_id)
         is_near_goal = CheckGoalDistance("CheckGoalDistance", robot_id)
         move2goal = MoveToGoal("MoveToGoal")
+
+        # Types of kicks:
+
         shoot_ball = ShootBall("ShootBall")
+        spin_ball = SpinBall("SpinBall")
 
         going_to_ball = Sequence("GoingToBall", [is_near_ball, move2ball])
         going_to_goal = Sequence("GoingToGoal", [is_near_goal, move2goal])
 
         prepare2shoot = Selector("Prepare2Shoot", [going_to_ball, going_to_goal])
 
+        # self.add_children([prepare2shoot, shoot_ball])
         self.add_children([prepare2shoot, shoot_ball])
 
     def __call__(self):
