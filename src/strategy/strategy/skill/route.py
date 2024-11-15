@@ -215,6 +215,14 @@ class StraightMovement():
                 "sync" : True,
                 "path_kwargs" : {"theta" : theta},
                 "orientation_kwargs" : {}}
+    
+    def moveToEnemyGoal(self, theta):
+        return {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry), BoundaryObstacles(self.blackboard.geometry)],
+                "path_profile" : MovementProfiles.Straight,
+                "orientation_profile": DirectionProfiles.Aim,
+                "sync" : False,
+                "path_kwargs" : {"theta" : theta},
+                "orientation_kwargs" : {"theta" : theta}}
         
         
 class GetInAngleStrategy():

@@ -157,11 +157,15 @@ class Running(Sequence):
                     robot_id = robot
 
         if dict != None:
-            if isinstance(dict[robot_id], OurActionAttacker):
-                self.last_command = IsOurAttack("IsOurAttack")
-                LastCommand().set_command(self.last_command)
+            if dict[robot_id]:
+                if isinstance(dict[robot_id], OurActionAttacker):
+                    self.last_command = IsOurAttack("IsOurAttack")
+                    LastCommand().set_command(self.last_command)
+                else:
+                    self.last_command = IsOurDefense("IsOurDefense")
+                    LastCommand().set_command(self.last_command)
             else:
-                self.last_command = IsOurDefense("IsOurDefense")
+                self.last_command = IsOurAttack("IsOurAttack")
                 LastCommand().set_command(self.last_command)
         return command
 

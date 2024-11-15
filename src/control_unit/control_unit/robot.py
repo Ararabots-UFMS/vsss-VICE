@@ -40,7 +40,7 @@ class Robot(Node):
         self,
         id: int,
         name: str,
-        max_velocity=500,
+        max_velocity=3000,
         max_angular_vel=1,
         max_acceleration=3000,
         max_angular_acc=0.5,
@@ -90,6 +90,7 @@ class Robot(Node):
     def run(self):
 
         # self.behaviour =  OurActionAttacker("name")
+        self.get_logger().info(f"{self.path_trajectory.at_time(self.get_relative_time())} {(self.blackboard.ally_robots[0].position_x, self.blackboard.ally_robots[0].position_y)}")
         if self.behaviour != None:
             command = self.behaviour()
         else:

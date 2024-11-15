@@ -74,7 +74,7 @@ def get_mpc(
     )
     mterm = lterm
     mpc.set_objective(lterm=lterm, mterm=mterm)
-    mpc.set_rterm(vx=0, vy=0, angular_velocity=1e-2)
+    mpc.set_rterm(vx=1e-4, vy=1e-4, angular_velocity=1e-2)
 
     mpc.bounds["lower", "_u", "vx"] = -max_velocity
     mpc.bounds["lower", "_u", "vy"] = -max_velocity
