@@ -22,7 +22,7 @@ from movement.path.path_profiles import MovementProfiles, DirectionProfiles
 from strategy.robots.running.attacker import OurActionAttacker
 from strategy.robots.halt.attacker import ActionAttacker
 from strategy.robots.penalty.our_penalty.goalkeeper import OurGoalkeeperAction
-from strategy.robots.freekick.our_free_kick.attacker import OurAttackerAction
+from strategy.robots.kickoff.attacker import OurActionAttacker
 
 from control.mpc import Controller
 
@@ -90,7 +90,8 @@ class Robot(Node):
         self.test = time()
 
     def run(self):
-
+        # print(f" is_field_side_left: {self.blackboard.gui.is_field_side_left}")
+        # print(f" is_team_color_yellow: {self.blackboard.gui.is_team_color_yellow}")
         # self.behaviour =  OurActionAttacker("name")
         # self.get_logger().info(f"{self.path_trajectory.at_time(self.get_relative_time())} {(self.blackboard.ally_robots[0].position_x, self.blackboard.ally_robots[0].position_y)}")
         # if self.behaviour != None:
@@ -115,6 +116,7 @@ class Robot(Node):
                 "path_kwargs" : {},
                 "orientation_kwargs" : {"theta" : theta}}
 
+        self.get_logger().info(f"{self.behaviour}")
         self.update_kick()
 
         self.update_trajectory(command)
