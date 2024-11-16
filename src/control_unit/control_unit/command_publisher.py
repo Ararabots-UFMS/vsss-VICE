@@ -2,6 +2,7 @@ from rclpy.node import Node
 
 from system_interfaces.msg import TeamCommand, RobotCommand
 from time import time
+from movement.path.path_profiles import MovementProfiles, DirectionProfiles
 
 from math import cos, sin
 
@@ -47,12 +48,23 @@ class CommandPublisher(Node):
                 -orientation,
             )
 
+            vel_angular = float(velocities[2])
+            
+            if robot.current_command != None:
+                if robot.current_command["path_profile"] == MovementProfiles.Break:
+                    vel_norm, vel_tan = 0.0, 0.0
+                if robot.current_command["orientation_profile"] == DirectionProfiles.Break:
+                    vel_angular = 0.0
+
+
             command = RobotCommand()
             command.robot_id = robot.id
             command.linear_velocity_x = vel_norm
             command.linear_velocity_y = vel_tan
-            command.angular_velocity = float(velocities[2])
+            command.angular_velocity = vel_angular
             command.kick = robot.kick*1.5 #1.5 m/s is our kick speed
             msg.robots.append(command)
+        
+
 
         self.publisher.publish(msg)

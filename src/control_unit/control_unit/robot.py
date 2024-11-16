@@ -93,12 +93,13 @@ class Robot(Node):
         # print(f" is_field_side_left: {self.blackboard.gui.is_field_side_left}")
         # print(f" is_team_color_yellow: {self.blackboard.gui.is_team_color_yellow}")
         # self.behaviour =  OurActionAttacker("name")
-        # self.get_logger().info(f"{self.path_trajectory.at_time(self.get_relative_time())} {(self.blackboard.ally_robots[0].position_x, self.blackboard.ally_robots[0].position_y)}")
-        # if self.behaviour != None:
-        #     command = self.behaviour()
-        # else:
-        self.behaviour = ActionAttacker()
-        # command = self.behaviour()
+        self.get_logger().info(f"{self.path_trajectory.at_time(self.get_relative_time())} {(self.blackboard.ally_robots[0].position_x, self.blackboard.ally_robots[0].position_y)}")
+        if self.behaviour != None:
+            command = self.behaviour()
+        else:
+            self.behaviour = ActionAttacker()
+        command = self.behaviour()
+        self.get_logger().info(f"{self.behaviour}")
         theta = 0
         if time() - self.test < 10:
             theta = 0
@@ -109,12 +110,12 @@ class Robot(Node):
         elif time() - self.test < 40:
             theta = -pi/2
 
-        command =  {"obstacles" : [],
-                "path_profile" : MovementProfiles.Break,
-                "orientation_profile": DirectionProfiles.Aim,
-                "sync" : False,
-                "path_kwargs" : {},
-                "orientation_kwargs" : {"theta" : theta}}
+        # command =  {"obstacles" : [],
+        #         "path_profile" : MovementProfiles.Break,
+        #         "orientation_profile": DirectionProfiles.Aim,
+        #         "sync" : False,
+        #         "path_kwargs" : {},
+        #         "orientation_kwargs" : {"theta" : theta}}
 
         self.get_logger().info(f"{self.behaviour}")
         self.update_kick()

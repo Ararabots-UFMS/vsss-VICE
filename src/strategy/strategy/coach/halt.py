@@ -1,7 +1,6 @@
 from strategy.behaviour import LeafNode, Sequence, TaskStatus
 from strategy.blackboard import Blackboard
-from strategy.robots.halt.attacker import ActionAttacker
-
+from strategy.robots.halt.halt import GameHalted
 
 class CheckState(LeafNode):
     def __init__(self, name, _desired_states):
@@ -23,7 +22,7 @@ class HaltAction(LeafNode):
 
     def run(self):
         for robot in self.blackboard.ally_robots:
-            self.commands[robot] = ActionAttacker()
+            self.commands[robot] = GameHalted()
 
         return TaskStatus.SUCCESS, self.commands
     

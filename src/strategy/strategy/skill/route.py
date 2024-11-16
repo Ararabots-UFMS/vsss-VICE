@@ -209,7 +209,7 @@ class StraightMovement():
 
         """Moviment to point when the robot is not goalkeeper"""
 
-        return {"obstacles" : [],
+        return {"obstacles" : [PenaltyAreaObstacles(self.blackboard.geometry)],
                 "path_profile" : MovementProfiles.Straight,
                 "orientation_profile": [],
                 "sync" : True,

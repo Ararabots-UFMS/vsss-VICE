@@ -24,9 +24,9 @@ class Vision(Node):
         # Parameters settings.
         self.declare_parameter("ip", "224.5.23.2")
         # Visão real
-        self.declare_parameter("port", 10006)
+        # self.declare_parameter("port", 10006)
         # Grsim
-        # self.declare_parameter('port', 10020)
+        self.declare_parameter('port', 10020)
         self.declare_parameter("verbose", False)
         self.declare_parameter("num_cams", 4)
         self.declare_parameter("max_frame_skipped", 30)
