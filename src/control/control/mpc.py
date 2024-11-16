@@ -7,7 +7,7 @@ from ruckig import Trajectory
 
 class Controller:
     def __init__(
-        self, max_velocity, max_angular_vel, n_horizon=2, t_step=0.05, n_robust=0
+        self, max_velocity, max_angular_vel, n_horizon=2, t_step=0.1, n_robust=0
     ):
         self.n_horizon = n_horizon
         self.t_step = t_step

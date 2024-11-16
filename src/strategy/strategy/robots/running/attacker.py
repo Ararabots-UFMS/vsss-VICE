@@ -11,8 +11,8 @@ class MoveToBall(LeafNode):
         super().__init__(name)
         self.name = "OurActionAttacker"
         self.blackboard = Blackboard()
-        self.movement = GetInAngleStrategy()
-        # self.movement = NormalMovement()
+        # self.movement = GetInAngleStrategy()
+        self.movement = NormalMovement()
         self.radius = 112 # raio do robo + raio da bola
 
         if self.blackboard.gui.is_field_side_left: 
@@ -45,7 +45,7 @@ class MoveToBall(LeafNode):
         # print(f"theta : {theta}")
         # print("Indo até a bola")
         # Yeh, I don't know why, but if the points were positive, this doesn't work
-        return TaskStatus.SUCCESS, self.movement.moveToBall(-x_d, -y_d, theta)
+        return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(self.blackboard.balls[0].position_x, self.blackboard.balls[0].position_y, theta)
     
     def draw_line(self):
 
@@ -85,7 +85,7 @@ class CheckBallDistance(LeafNode):
         self.ball_position_y = self.blackboard.balls[0].position_y
         self.position_x = self.blackboard.ally_robots[robot].position_x
         self.position_y = self.blackboard.ally_robots[robot].position_y
-        self.radius = 120
+        self.radius = 250
 
     def run(self):
 
@@ -130,7 +130,11 @@ class MoveToGoal(LeafNode):
         # self.movement = GetInAngleStrategy()
         # self.movement = NormalMovement()
         self.movement = StraightMovement()
+        self._break = BreakStrategy()
         self.theta = 0
+        self.position_x = self.blackboard.ally_robots[robot].position_x
+        self.position_y = self.blackboard.ally_robots[robot].position_y
+        # self.points = DefesivePl
 
         #trocar para field lines dps
         if self.blackboard.gui.is_field_side_left:
@@ -139,46 +143,26 @@ class MoveToGoal(LeafNode):
             self.goal_position_x = -2250 + 450 # linha do gol em x + padding de 450 
 
     def run(self):
+
         # print("Indo até o gol")
         if self.blackboard.gui.is_field_side_left:
+            if self.position_x > 1500: 
+                return TaskStatus.SUCCESS, self._break._break()
+            else:
             # self.blackboard.activate_kick()
-            return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.theta)
+                return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.theta)
         else:
             # self.blackboard.activate_kick()
-            self.theta = math.pi
-            return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.theta)
+            if self.position_x > -1500: 
+                return TaskStatus.SUCCESS, self._break._break()
+            else:
+            # self.blackboard.activate_kick()
+                self.theta = math.pi
+                return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.theta)
 
-#It must be used with we dont have a kick:
-
-class SpinBall(LeafNode):
-    def __init__(self, name):
-        super().__init__(name)
-        self.blackboard = Blackboard()
-        self.movement = SpinStrategy()
-        self.enemy_goalkeeper_id = 0
-        if self.blackboard.gui.is_team_color_yellow:
-            self.enemy_color = 0 # blue color in list
-        else:
-            self.enemy_color = 1 # Yellow color in list
-        self.is_left = False
-    
-    def where_is_enemy_goalkeeper(self):
-        try:
-            for enemy in self.blackboard.enemy_robots:
-                if enemy == self.blackboard.referee.teams[self.enemy_color].goalkeeper:
-                    self.enemy_goalkeeper_id = enemy
             
-            if round(self.blackboard.enemy_robots[self.enemy_goalkeeper_id].position_y) < 0:
-                self.is_left = True 
-
-            return self.is_left
-
-        except:
-            return self.is_left
-        
-    def run(self):
-        self.where_is_enemy_goalkeeper()
-        return TaskStatus.SUCCESS, self.movement.spin(self.is_left)
+            return TaskStatus.SUCCESS, self.movement.moveToEnemyGoal(self.theta)
+#It must be used with we dont have a kick:
 
 
 #It must be used with we have a kick:
@@ -205,7 +189,6 @@ class OurActionAttacker(Selector):
         # Types of kicks:
 
         shoot_ball = ShootBall("ShootBall")
-        spin_ball = SpinBall("SpinBall")
 
         going_to_ball = Sequence("GoingToBall", [is_near_ball, move2ball])
         going_to_goal = Sequence("GoingToGoal", [is_near_goal, move2goal])

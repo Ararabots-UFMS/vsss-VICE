@@ -24,7 +24,7 @@ class RefereeNode(Node):
             self.declare_parameter("port", 10003).get_parameter_value().integer_value
         )
         self.buffer_size = (
-            self.declare_parameter("buffer_size", 1024)
+            self.declare_parameter("buffer_size", 20240)
             .get_parameter_value()
             .integer_value
         )

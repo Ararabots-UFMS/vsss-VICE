@@ -41,7 +41,7 @@ class MoveToBall(LeafNode):
         print(f"position y_d : {-y_d}")
         print(f"theta : {theta}")
 
-        return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation(-x_d, -y_d, theta)
+        return TaskStatus.SUCCESS, self.movement.move_to_position_with_orientation_no_obstacle(self.blackboard.balls[0].position_x,self.blackboard.balls[0].position_y, 0)
     
     def draw_line(self):
 
