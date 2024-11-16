@@ -7,7 +7,7 @@ from ruckig import Trajectory
 
 class Controller:
     def __init__(
-        self, max_velocity, max_angular_vel, n_horizon=2, t_step=0.1, n_robust=0
+        self, max_velocity, max_angular_vel, n_horizon=2, t_step=0.05, n_robust=0
     ):
         self.n_horizon = n_horizon
         self.t_step = t_step
@@ -29,8 +29,8 @@ class Controller:
         self.mpc.setup()
 
     def __call__(self, state):
-        if copysign(1, state[2]) != copysign(1, self.orientation_trajectory.at_time(self.orientation_trajectory.duration)[0][0]):
-            state[2] += 2*pi * copysign(1, self.orientation_trajectory.at_time(self.orientation_trajectory.duration)[0][0])
+        # if copysign(1, state[2]) != copysign(1, self.orientation_trajectory.at_time(self.orientation_trajectory.duration)[0][0]):
+        #     state[2] += 2*pi * copysign(1, self.orientation_trajectory.at_time(self.orientation_trajectory.duration)[0][0])
         
         self.set_initial_guess(state)
         return self.mpc.make_step(state)
@@ -78,7 +78,7 @@ def get_mpc(
     )
     mterm = lterm
     mpc.set_objective(lterm=lterm, mterm=mterm)
-    mpc.set_rterm(vx=1e-4, vy=1e-4, angular_velocity=1e-4)
+    mpc.set_rterm(vx=1, vy=1, angular_velocity=1e-2)
 
     mpc.bounds["lower", "_u", "vx"] = -max_velocity
     mpc.bounds["lower", "_u", "vy"] = -max_velocity

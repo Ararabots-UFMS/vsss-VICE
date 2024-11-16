@@ -168,7 +168,7 @@ class PenaltyAreaObstacles(StaticObstacle):
             elif line.name == 'RightFieldRightPenaltyStretch':
                 self.right_field_right_penalty = line
 
-    def is_colission(self, point: Tuple[float, float], padding: float = 150) -> bool:
+    def is_colission(self, point: Tuple[float, float], padding: float = 110) -> bool:
         '''
         Check if the point is inside the field boundaries
 

@@ -13,7 +13,6 @@ from strategy.coach.normal_start import Running
 from strategy.coach.penalty import Penalty
 from strategy.coach.stop import Stop
 from strategy.coach.timeout import _Timeout
-from strategy.coach.running.Defense_play import DefensivePlay, GetPoints
 
 
 class Coach(Node):
@@ -59,7 +58,6 @@ class Coach(Node):
     def run(self):
         # The code below just create a simple behaviour tree which is available in strategy
         status, strategy = CoachStrategy("CoachStrategy").run()
-        # print(strategy)
 
         for robot in list(self.robots.values()):
             if strategy != None:
@@ -68,8 +66,6 @@ class Coach(Node):
                 except:
                     self.get_logger().info("ROBOT NOT FOUND")
 
-        # strategy = DefensivePlay()
-        # strategy.run()
 
 
 def main(args=None):
