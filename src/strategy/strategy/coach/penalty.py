@@ -3,6 +3,7 @@ from strategy.behaviour import LeafNode, Selector, Sequence, TaskStatus
 from strategy.blackboard import Blackboard
 from strategy.robots.kickoff.goalkeeper import TheirActionGoalKeeper
 from strategy.robots.penalty.our_penalty.attacker import OurActionAttacker, TheirActionAttacker
+from strategy.strategy.robots.penalidades.penalt_kicks import PenaltyKick
 
 
 class CheckState(LeafNode):
@@ -52,7 +53,7 @@ class OurPenaltyAction(LeafNode):
 
         #Estrategia unificada:
         for robot in self.blackboard.ally_robots:
-                self.commands[robot] = OurActionAttacker()
+                self.commands[robot] = PenaltyKick()
 
         return TaskStatus.SUCCESS, self.commands 
     
