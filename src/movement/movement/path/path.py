@@ -1,9 +1,10 @@
-from utils.math_utils import orientation_solver
-from movement.path.path_profiles import PathProfile, OrientationProfile
+from movement.path.path_profiles import MovementProfiles, DirectionProfiles
 
 from ruckig import InputParameter, OutputParameter, Result, Ruckig, Trajectory
 
 from typing import List, Optional, Tuple
+
+from math import copysign, pi
 
 
 class PathGenerator:
@@ -17,14 +18,18 @@ class PathGenerator:
     def generate_input(
         self,
         init_state: Tuple[List[float]],
-        path_profile: PathProfile,
-        orientation_profile: OrientationProfile,
+        path_profile: MovementProfiles,
+        orientation_profile: DirectionProfiles,
         **kwargs
     ) -> Tuple[InputParameter, InputParameter]:
 
         # **kwargs need to be two different dicts of parameters. In this case, {path_kwargs} and {orientation_kwargs} inside kwargs.
         inp_path = InputParameter(2)
         inp_orientation = InputParameter(1)
+
+        if orientation_profile == DirectionProfiles.Aim:
+            if abs(init_state[0][2] - kwargs["orientation_kwargs"]["theta"]) > pi:
+                init_state[0][2] += -(copysign(2*pi, init_state[0][2]))
 
         inp_path.current_position = init_state[0][:2]
         inp_path.current_velocity = init_state[1][:2]
@@ -44,10 +49,5 @@ class PathGenerator:
         path_profile.generate(inp_path, **kwargs["path_kwargs"])
         orientation_profile.generate(inp_orientation, **kwargs["orientation_kwargs"])
 
-        inp_orientation.current_position[0], inp_orientation.target_position[0] = (
-            orientation_solver(
-                inp_orientation.current_position[0], inp_orientation.target_position[0]
-            )
-        )
 
         return inp_path, inp_orientation

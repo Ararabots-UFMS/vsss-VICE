@@ -1,7 +1,7 @@
 from rclpy.node import Node
 
 from time import time
-from math import sqrt, pi, cos, sin
+from math import sqrt, pi, copysign
 from random import uniform
 
 
@@ -11,11 +11,8 @@ from movement.move import Movement
 from movement.path import path_profiles as profiles
 from movement.path.path_acceptor import AcceptorStatus
 from movement.obstacles.dynamic_obstacles import RobotObstacle
-from movement.obstacles.static_obstacles import (
-    PenaltyAreaObstacles,
-    BoundaryObstacles,
-    WallObstacles,
-)
+from movement.obstacles.static_obstacles import PenaltyAreaObstacles, BoundaryObstacles, WallObstacles
+
 
 from movement.move import Movement, RobotStatus
 from movement.path.path_profiles import MovementProfiles, DirectionProfiles
@@ -25,8 +22,6 @@ from strategy.robots.penalty.our_penalty.goalkeeper import OurGoalkeeperAction
 from strategy.robots.freekick.our_free_kick.attacker import OurAttackerAction
 
 from control.mpc import Controller
-
-from utils.math_utils import orientation_solver
 
 from ruckig import Trajectory
 
@@ -119,7 +114,8 @@ class Robot(Node):
 
         self.update_trajectory(command)
 
-        self.get_logger().info(f"{orientation_solver(self.get_state()[0][2], self.get_state(from_vision=False)[0][2])}")
+        # self.get_logger().info(f"{orientation_solver(self.get_state()[0][2], self.get_state(from_vision=False)[0][2])}")
+        self.get_logger().info(f"{self.get_state()[0]} {self.get_state(from_vision=False)[0]}")
 
     def update_trajectory(self, command):
         status, (path_trajectory, orientation_trajectory) = self.move(
@@ -217,6 +213,38 @@ class Robot(Node):
     def update_kick(self):
         self.kick = self.blackboard.can_i_kick
 
+    def get_state(self, from_vision=True):
+        """Retuns robots position from blackboard"""
+
+        if from_vision:
+            try:
+                robot = self.blackboard.ally_robots[self.id]
+
+                orientation = robot.orientation
+
+                if abs(self.orientation_trajectory.at_time(self.orientation_trajectory.duration)[0][0] - orientation) > pi:
+                    orientation += -(copysign(2*pi, orientation))
+
+                return (
+                    np.array([robot.position_x, robot.position_y, orientation]),
+                    np.array(
+                        [robot.velocity_x, robot.velocity_y, robot.velocity_orientation]
+                    ),
+                )
+            except Exception as e:
+                pass
+                    
+        state = self.path_trajectory.at_time(self.get_relative_time())[:2]
+        ostate = self.orientation_trajectory.at_time(self.get_relative_time())[:2]
+        
+        if abs(self.orientation_trajectory.at_time(self.orientation_trajectory.duration)[0][0] - ostate[0][0]) > pi:
+            ostate[0][0] += -(copysign(2*pi, ostate[0][0]))
+
+        state[0].append(ostate[0][0])
+        state[1].append(ostate[1][0])
+
+        return np.array(state)
+    
     def get_state(self, from_vision=True):
         """Retuns robots position from blackboard"""
 

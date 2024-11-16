@@ -1,7 +1,7 @@
 from do_mpc.controller import MPC
 from control.model import get_model
 from time import time
-from math import copysign, pi
+from math import pi, copysign
 from ruckig import Trajectory
 
 
@@ -29,9 +29,8 @@ class Controller:
         self.mpc.setup()
 
     def __call__(self, state):
-        if copysign(1, state[2]) != copysign(1, self.orientation_trajectory.at_time(self.orientation_trajectory.duration)[0][0]):
-            state[2] += 2*pi * copysign(1, self.orientation_trajectory.at_time(self.orientation_trajectory.duration)[0][0])
         
+
         self.set_initial_guess(state)
         return self.mpc.make_step(state)
 
@@ -55,7 +54,7 @@ class Controller:
 
             self.tvp_template["_tvp", k, "ref_x"] = positions[0]
             self.tvp_template["_tvp", k, "ref_y"] = positions[1]
-            self.tvp_template["_tvp", k, "ref_orientation"] = orientation
+            self.tvp_template["_tvp", k, "ref_orientation"] = orientation[0]
         return self.tvp_template
 
 
