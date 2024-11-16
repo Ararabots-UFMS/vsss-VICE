@@ -52,6 +52,7 @@ class RefereeNode(Node):
                 # Parse the Protobuf message
                 referee_message.ParseFromString(data)
 
+
                 # Create and populate RefereeMessage message using MessageWrapping
                 referee_wrapper = MessageWrapping(referee_message)
                 referee_wrapper.to_game_data()

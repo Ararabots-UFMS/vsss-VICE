@@ -15,8 +15,10 @@ class MessageWrapping():
     
     def to_game_data(self):
         self.msg.stage = Referee.Stage.Name(self.referee.stage)
+        self.msg.stage_time_left = self.referee.stage_time_left
         self.msg.command = Referee.Command.Name(self.referee.command)
         self.msg.command_counter = self.referee.command_counter
+        self.msg.current_action_time_remaining = self.referee.current_action_time_remaining
 
     def blue_team_description(self):
         self.msg.teams[0].color = 'blue'
