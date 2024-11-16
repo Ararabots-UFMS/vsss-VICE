@@ -20,18 +20,18 @@ from movement.obstacles.static_obstacles import (
 from movement.move import Movement, RobotStatus
 from movement.path.path_profiles import MovementProfiles, DirectionProfiles
 from strategy.robots.running.attacker import OurActionAttacker
-from strategy.robots.halt.attacker import ActionAttacker
+from strategy.robots.halt.halt import GameHalted
 from strategy.robots.penalty.our_penalty.goalkeeper import OurGoalkeeperAction
 from strategy.robots.kickoff.attacker import OurActionAttacker
 
 from control.mpc import Controller
 
-from utils.math_utils import orientation_solver
+# from utils.math_utils import orientation_solver
 
 from ruckig import Trajectory
 
 from time import time
-from math import sqrt
+from math import sqrt, atan2
 import numpy as np
 
 from movement.obstacles.dynamic_obstacles import RobotObstacle
@@ -43,7 +43,7 @@ class Robot(Node):
         id: int,
         name: str,
         max_velocity=3000,
-        max_angular_vel=3.14,
+        max_angular_vel=1,
         max_acceleration=3000,
         max_angular_acc=0.5,
     ):
@@ -93,35 +93,35 @@ class Robot(Node):
         # print(f" is_field_side_left: {self.blackboard.gui.is_field_side_left}")
         # print(f" is_team_color_yellow: {self.blackboard.gui.is_team_color_yellow}")
         # self.behaviour =  OurActionAttacker("name")
-        # self.get_logger().info(f"{self.path_trajectory.at_time(self.get_relative_time())} {(self.blackboard.ally_robots[0].position_x, self.blackboard.ally_robots[0].position_y)}")
-        # if self.behaviour != None:
-        #     command = self.behaviour()
-        # else:
-        self.behaviour = ActionAttacker()
-        # command = self.behaviour()
-        theta = 0
-        if time() - self.test < 10:
-            theta = 0
-        elif time() - self.test < 20:
-            theta = pi/2
-        elif time() - self.test < 30:
-            theta = pi
-        elif time() - self.test < 40:
-            theta = -pi/2
+        self.get_logger().info(f"{self.path_trajectory.at_time(self.get_relative_time())} {(self.blackboard.ally_robots[0].position_x, self.blackboard.ally_robots[0].position_y)}")
+        if self.behaviour != None:
+            command = self.behaviour()
+        else:
+            self.behaviour = GameHalted()
+        command = self.behaviour()
+        # theta = 0
+        # if time() - self.test < 10:
+        #     theta = 0
+        # elif time() - self.test < 20:
+        #     theta = pi/2
+        # elif time() - self.test < 30:
+        #     theta = pi
+        # elif time() - self.test < 40:
+        #     theta = -pi/2
 
-        command =  {"obstacles" : [],
-                "path_profile" : MovementProfiles.Break,
-                "orientation_profile": DirectionProfiles.Aim,
-                "sync" : False,
-                "path_kwargs" : {},
-                "orientation_kwargs" : {"theta" : theta}}
+        # command =  {"obstacles" : [],
+        #         "path_profile" : MovementProfiles.GetInAngle,
+        #         "orientation_profile": DirectionProfiles.Aim,
+        #         "sync" : False,
+        #         "path_kwargs" : {"goal_state" : (self.blackboard.balls[0].position_x, self.blackboard.balls[0].position_y), "theta": atan2(self.blackboard.balls[0].position_y, self.blackboard.balls[0].position_x - 2250)},
+        #         "orientation_kwargs" : {"theta" : atan2(self.blackboard.balls[0].position_y, self.blackboard.balls[0].position_x - 2250)}}
 
         self.get_logger().info(f"{self.behaviour}")
         self.update_kick()
 
         self.update_trajectory(command)
 
-        self.get_logger().info(f"{orientation_solver(self.get_state()[0][2], self.get_state(from_vision=False)[0][2])}")
+        # self.get_logger().info(f"{orientation_solver(self.get_state()[0][2], self.get_state(from_vision=False)[0][2])}")
 
     def update_trajectory(self, command):
         status, (path_trajectory, orientation_trajectory) = self.move(

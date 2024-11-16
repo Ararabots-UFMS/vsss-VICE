@@ -108,8 +108,8 @@ class TheirAttackerAction():
 
     def __call__(self):
         self.movement = NormalMovement()
-        return self.movement.moveToCenter()
+        return self.movement.centerLineGoal()
         
     def run(self):
         self.movement = NormalMovement()
-        return self.movement.moveToCenter()
+        return self.movement.centerLineGoal()

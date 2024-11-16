@@ -155,7 +155,10 @@ class CheckForEnemies(LeafNode):
         self.movement = NormalMovement()
         self.ball_position_x = self.blackboard.balls[0].position_x
         self.ball_position_y = self.blackboard.balls[0].position_y
-        self.goal_position_x = 2250
+        if self.blackboard.gui.is_field_side_left:
+            self.goal_position_x = 2250
+        else:
+            self.goal_position_x = -2250
         self.goal_position_y = 0
         self.theta = 0
 

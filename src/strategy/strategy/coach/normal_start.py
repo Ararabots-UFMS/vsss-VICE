@@ -7,7 +7,6 @@ from strategy.coach.running.Defense_play import DefensivePlay
 from strategy.robots.penalty.our_penalty.goalkeeper import OurGoalkeeperAction
 from strategy.robots.running.attacker import OurActionAttacker
 from strategy.robots.running.defensive import OurActionDefender
-from strategy.robots.halt.defender import ActionDefender
 from strategy.coach.running.command import LastCommand
 
 class CheckZone(LeafNode):
@@ -17,6 +16,10 @@ class CheckZone(LeafNode):
         self.name = name
         self.ball = self.blackboard.balls[0]
         self.padding = 500
+        self.left_goal = -2250
+        self.middle_left = -500
+        self.middle_right = 500
+        self.right_goal = 2250
         for line in self.blackboard.geometry.field_lines:
             if line.name == 'LeftGoalLine':
                 self.left_goal = line.x1
@@ -162,7 +165,7 @@ class Running(Sequence):
                     self.last_command = IsOurAttack("IsOurAttack")
                     LastCommand().set_command(self.last_command)
                 else:
-                    self.last_command = IsOurDefense("IsOurDefense")
+                    self.last_command = OurGoalkeeperAction("name")
                     LastCommand().set_command(self.last_command)
             else:
                 self.last_command = IsOurAttack("IsOurAttack")

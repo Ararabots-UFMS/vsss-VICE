@@ -52,7 +52,7 @@ class GetInAngleProfile(PathProfile):
 
         # Using 10% of the total velocity.
         bottleneck_vel = inp.max_velocity[0] if inp.max_velocity[0] < inp.max_velocity[1] else inp.max_velocity[1]
-        arriving_velocity = bottleneck_vel * 0.2
+        arriving_velocity = bottleneck_vel
         
         inp.target_position = [goal_state[0], goal_state[1]]
         inp.target_velocity = [arriving_velocity * cos(theta) , arriving_velocity * sin(theta)]

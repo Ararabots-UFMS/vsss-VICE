@@ -1,3 +1,4 @@
+import math
 from movement.obstacles.interfaces import DynamicObstacle
 from system_interfaces.msg import Robots
 
@@ -101,29 +102,36 @@ class RobotObstacle(DynamicObstacle):
         self.state = state
 
 class BallObstacle(DynamicObstacle):
-
-    def __init__(self, geometry: VisionMessage, radius: float = 22):
+    def __init__(self, geometry: VisionMessage, radius: float = 22, max_delta: float = 0.5, max_vel: float = 1.0):
         self.ball = geometry.balls[0]
         self.radius = radius
-        
+        self.max_delta = max_delta
+        self.max_vel = max_vel
 
-    def is_colission(self, ref_point: Tuple[float, float], ref_radius = 90, stop_distance: float = 500 , use_dynamic: bool = False) -> bool:
-
+    def is_colission(self, ref_point: Tuple[float, float], ref_radius: float = 90, stop_distance: float = 500, use_dynamic: bool = False) -> bool:
         dynamic_center, dynamic_radius = self.get_dynamic_range() if use_dynamic else ([self.ball.position_x, self.ball.position_y], self.radius)
         
-        print(f"is collision ref_point: {ref_point}")
-        distance = sqrt((dynamic_center[0] - ref_point[0])**2 + (dynamic_center[1] - ref_point[1])**2)
-
-        if distance < dynamic_radius + ref_radius + stop_distance:
-            return True
-        
-        return False
+        distance = math.sqrt((dynamic_center[0] - ref_point[0])**2 + (dynamic_center[1] - ref_point[1])**2)
+        return distance < dynamic_radius + ref_radius + stop_distance
 
     def get_dynamic_range(self) -> Tuple[Tuple[float, float], float]:
-        pass
+        # Calculate the dynamic range based on ball velocity and max_delta
+        velocity_mag = math.sqrt(self.ball.velocity_x**2 + self.ball.velocity_y**2)
+        
+        # Handle stationary ball (to avoid division by zero)
+        if velocity_mag == 0:
+            return (self.ball.position_x, self.ball.position_y), self.radius
 
-    def update_state(self, x: Tuple[List[float]]) -> None:
-        pass
+        # Normalize the velocity vector
+        velocity_norm = (self.ball.velocity_x / velocity_mag, self.ball.velocity_y / velocity_mag)
+        
+        # Scale the movement range by velocity and max_delta
+        dynamic_center_x = self.ball.position_x + velocity_norm[0] * min(velocity_mag * self.max_delta, self.max_vel)
+        dynamic_center_y = self.ball.position_y + velocity_norm[1] * min(velocity_mag * self.max_delta, self.max_vel)
+        
+        dynamic_radius = self.radius + velocity_mag * self.max_delta
+        return (dynamic_center_x, dynamic_center_y), dynamic_radius
 
-
-    
+    def update_state(self, geometry: VisionMessage) -> None:
+        # Update the ball state with new vision data
+        self.ball = geometry.balls[0]
